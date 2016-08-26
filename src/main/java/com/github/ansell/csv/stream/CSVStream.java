@@ -163,6 +163,27 @@ public final class CSVStream {
 		}
 	}
 
+	/**
+	 * Writes objects from the given {@link Stream} to the given {@link Writer}
+	 * in CSV format, converting them to a {@link List} of String's using the
+	 * given {@link BiFunction}.
+	 * 
+	 * @param writer
+	 *            The Writer that will receive the CSV file.
+	 * @param objects
+	 *            The Stream of objects to be written
+	 * @param headers
+	 *            The headers to use for the resulting CSV file.
+	 * @param objectConverter
+	 *            The function to convert an individual object to a line in the
+	 *            resulting CSV file, represented as a List of String's.
+	 * @param <T>
+	 *            The type of the objects to be converted.
+	 * @throws IOException
+	 *             If an error occurred accessing the output stream.
+	 * @throws CSVStreamException
+	 *             If an error occurred converting or serialising the objects.
+	 */
 	public static <T> void write(final Writer writer, final Stream<T> objects, final List<String> headers,
 			final BiFunction<List<String>, T, List<String>> objectConverter) throws IOException, CSVStreamException {
 		try (SequenceWriter csvWriter = newCSVWriter(writer, headers);) {
