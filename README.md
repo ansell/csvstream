@@ -1,5 +1,5 @@
-# csvstream
-Java-8 based CSV streaming
+# CSVStream
+Java-8 based CSV streaming, based on the Jackson CSV parser.
 
 # Changelog
 
