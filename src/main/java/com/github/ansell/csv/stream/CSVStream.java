@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.MappingIterator;
@@ -159,6 +160,19 @@ public final class CSVStream {
 
 		if (headers == null) {
 			throw new CSVStreamException("CSV file did not contain a valid header line");
+		}
+	}
+
+	public static <T> void write(final Writer writer, final Stream<T> objects, final List<String> headers,
+			final BiFunction<List<String>, T, List<String>> objectConverter) throws IOException, CSVStreamException {
+		try (SequenceWriter csvWriter = newCSVWriter(writer, headers);) {
+			objects.forEachOrdered(o -> {
+				try {
+					csvWriter.write(objectConverter.apply(headers, o));
+				} catch (Exception e) {
+					throw new CSVStreamException("Could not write object out", e);
+				}
+			});
 		}
 	}
 
