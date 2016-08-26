@@ -26,8 +26,12 @@
 package com.github.ansell.csv.stream;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.Reader;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -55,11 +59,45 @@ public final class CSVStream {
 	}
 
 	/**
+	 * Stream a CSV file from the given InputStream through the header
+	 * validator, line checker, and if the line checker succeeds, send the
+	 * checked/converted line to the consumer.
+	 * 
+	 * @param inputStream
+	 *            The {@link InputStream} containing the CSV file.
+	 * @param headerValidator
+	 *            The validator of the header line. Throwing
+	 *            IllegalArgumentException or other RuntimeExceptions causes the
+	 *            parsing process to short-circuit after parsing the header
+	 *            line, with a CSVStreamException being rethrown by this code.
+	 * @param lineConverter
+	 *            The validator and converter of lines, based on the header
+	 *            line. If the lineChecker returns null, the line will not be
+	 *            passed to the writer.
+	 * @param resultConsumer
+	 *            The consumer of the checked lines.
+	 * @param <T>
+	 *            The type of the results that will be created by the
+	 *            lineChecker and pushed into the writer {@link Consumer}.
+	 * @throws IOException
+	 *             If an error occurred accessing the input.
+	 * @throws CSVStreamException
+	 *             If an error occurred validating the input.
+	 */
+	public static <T> void parse(final InputStream inputStream, final Consumer<List<String>> headerValidator,
+			final BiFunction<List<String>, List<String>, T> lineConverter, final Consumer<T> resultConsumer)
+			throws IOException, CSVStreamException {
+		try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);) {
+			parse(inputStreamReader, headerValidator, lineConverter, resultConsumer);
+		}
+	}
+
+	/**
 	 * Stream a CSV file from the given Reader through the header validator,
 	 * line checker, and if the line checker succeeds, send the
 	 * checked/converted line to the consumer.
 	 * 
-	 * @param inputStreamReader
+	 * @param reader
 	 *            The {@link Reader} containing the CSV file.
 	 * @param headerValidator
 	 *            The validator of the header line. Throwing
@@ -80,7 +118,7 @@ public final class CSVStream {
 	 * @throws CSVStreamException
 	 *             If an error occurred validating the input.
 	 */
-	public static <T> void parse(final Reader inputStreamReader, final Consumer<List<String>> headerValidator,
+	public static <T> void parse(final Reader reader, final Consumer<List<String>> headerValidator,
 			final BiFunction<List<String>, List<String>, T> lineConverter, final Consumer<T> resultConsumer)
 			throws IOException, CSVStreamException {
 		final CsvMapper mapper = new CsvMapper();
@@ -90,7 +128,7 @@ public final class CSVStream {
 
 		List<String> headers = null;
 
-		try (final MappingIterator<List<String>> it = mapper.readerFor(List.class).readValues(inputStreamReader);) {
+		try (final MappingIterator<List<String>> it = mapper.readerFor(List.class).readValues(reader);) {
 			while (it.hasNext()) {
 				List<String> nextLine = it.next();
 				if (headers == null) {
@@ -122,6 +160,47 @@ public final class CSVStream {
 		if (headers == null) {
 			throw new CSVStreamException("CSV file did not contain a valid header line");
 		}
+	}
+
+	/**
+	 * Returns a Jackson {@link SequenceWriter} which will write CSV lines to
+	 * the given {@link OutputStream} using the headers provided.
+	 * 
+	 * @param outputStream
+	 *            The writer which will receive the CSV file.
+	 * @param header
+	 *            The column headers that will be used by the returned Jackson
+	 *            {@link SequenceWriter}.
+	 * @return A Jackson {@link SequenceWriter} that can have
+	 *         {@link SequenceWriter#write(Object)} called on it to emit CSV
+	 *         lines to the given {@link OutputStream}.
+	 * @throws IOException
+	 *             If there is a problem writing the CSV header line to the
+	 *             {@link OutputStream}.
+	 */
+	public static SequenceWriter newCSVWriter(final OutputStream outputStream, List<String> header) throws IOException {
+		return newCSVWriter(outputStream, buildSchema(header));
+	}
+
+	/**
+	 * Returns a Jackson {@link SequenceWriter} which will write CSV lines to
+	 * the given {@link OutputStream} using the {@link CsvSchema}.
+	 * 
+	 * @param outputStream
+	 *            The writer which will receive the CSV file.
+	 * @param schema
+	 *            The {@link CsvSchema} that will be used by the returned
+	 *            Jackson {@link SequenceWriter}.
+	 * @return A Jackson {@link SequenceWriter} that can have
+	 *         {@link SequenceWriter#write(Object)} called on it to emit CSV
+	 *         lines to the given {@link OutputStream}.
+	 * @throws IOException
+	 *             If there is a problem writing the CSV header line to the
+	 *             {@link OutputStream}.
+	 */
+	public static SequenceWriter newCSVWriter(final OutputStream outputStream, CsvSchema schema) throws IOException {
+		return new CsvMapper().writerWithDefaultPrettyPrinter().with(schema).forType(List.class)
+				.writeValues(outputStream);
 	}
 
 	/**
