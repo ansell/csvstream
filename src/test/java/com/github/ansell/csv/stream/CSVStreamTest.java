@@ -32,6 +32,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -85,6 +86,20 @@ public class CSVStreamTest {
 		thrown.expectMessage("CSV file did not contain a valid header line");
 		CSVStream.parse(new ByteArrayInputStream(new byte[0]), h -> headers.addAll(h), (h, l) -> l, l -> {
 		});
+	}
+
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.InputStream, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer)}
+	 * .
+	 */
+	@Test
+	public final void testStreamCSVInputStreamSingleRow() throws Exception {
+		List<String> headers = new ArrayList<>();
+		List<List<String>> lines = new ArrayList<>();
+
+		CSVStream.parse(new ByteArrayInputStream("TestHeader1\nTestValue1\n".getBytes(StandardCharsets.UTF_8)),
+				h -> headers.addAll(h), (h, l) -> l, l -> lines.add(l));
 	}
 
 	/**
