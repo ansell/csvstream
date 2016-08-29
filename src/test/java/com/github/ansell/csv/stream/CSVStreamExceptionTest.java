@@ -29,6 +29,8 @@ public class CSVStreamExceptionTest {
 	 * 
 	 * @param clazz
 	 *            utility class to verify.
+	 * @see <a href="http://stackoverflow.com/a/10872497/638674">Source at
+	 *      StackOverflow</a>
 	 */
 	public static void assertUtilityClassWellDefined(final Class<?> clazz)
 			throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
