@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.MappingIterator;
@@ -159,6 +160,40 @@ public final class CSVStream {
 
 		if (headers == null) {
 			throw new CSVStreamException("CSV file did not contain a valid header line");
+		}
+	}
+
+	/**
+	 * Writes objects from the given {@link Stream} to the given {@link Writer}
+	 * in CSV format, converting them to a {@link List} of String's using the
+	 * given {@link BiFunction}.
+	 * 
+	 * @param writer
+	 *            The Writer that will receive the CSV file.
+	 * @param objects
+	 *            The Stream of objects to be written
+	 * @param headers
+	 *            The headers to use for the resulting CSV file.
+	 * @param objectConverter
+	 *            The function to convert an individual object to a line in the
+	 *            resulting CSV file, represented as a List of String's.
+	 * @param <T>
+	 *            The type of the objects to be converted.
+	 * @throws IOException
+	 *             If an error occurred accessing the output stream.
+	 * @throws CSVStreamException
+	 *             If an error occurred converting or serialising the objects.
+	 */
+	public static <T> void write(final Writer writer, final Stream<T> objects, final List<String> headers,
+			final BiFunction<List<String>, T, List<String>> objectConverter) throws IOException, CSVStreamException {
+		try (SequenceWriter csvWriter = newCSVWriter(writer, headers);) {
+			objects.forEachOrdered(o -> {
+				try {
+					csvWriter.write(objectConverter.apply(headers, o));
+				} catch (Exception e) {
+					throw new CSVStreamException("Could not write object out", e);
+				}
+			});
 		}
 	}
 
