@@ -31,10 +31,12 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Stream;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -309,11 +311,37 @@ public class CSVStreamTest {
 		AtomicBoolean headersGood = new AtomicBoolean(false);
 		AtomicBoolean lineGood = new AtomicBoolean(false);
 		CSVStream.parse(new StringReader(writer.toString()), h -> {
-			if (headers.size() == 1 && headers.contains("TestHeader1")) {
+			if (h.size() == 1 && h.contains("TestHeader1")) {
 				headersGood.set(true);
 			}
 		}, (h, l) -> {
 			if (l.size() == 1 && l.contains("")) {
+				lineGood.set(true);
+			}
+			return l;
+		}, l -> {
+		});
+
+		assertTrue("Headers were not recognised", headersGood.get());
+		assertTrue("Line was not recognised", lineGood.get());
+	}
+	
+	@Test
+	public final void testWriteStreamSingleValue() throws Exception {
+		StringWriter writer = new StringWriter();
+		CSVStream.write(writer , Stream.of(Arrays.asList("TestValue1")), Arrays.asList("TestHeader1"), (h, o) -> o);
+		
+		System.out.println(writer.toString());
+		assertEquals("TestHeader1\nTestValue1\n", writer.toString());
+
+		AtomicBoolean headersGood = new AtomicBoolean(false);
+		AtomicBoolean lineGood = new AtomicBoolean(false);
+		CSVStream.parse(new StringReader(writer.toString()), h -> {
+			if (h.size() == 1 && h.contains("TestHeader1")) {
+				headersGood.set(true);
+			}
+		}, (h, l) -> {
+			if (l.size() == 1 && l.contains("TestValue1")) {
 				lineGood.set(true);
 			}
 			return l;
