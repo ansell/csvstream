@@ -351,4 +351,23 @@ public class CSVStreamTest {
 		assertTrue("Headers were not recognised", headersGood.get());
 		assertTrue("Line was not recognised", lineGood.get());
 	}
+
+	/**
+	 * Test method for
+	 * {@link CSVStream#write(Writer, Stream, List, java.util.function.BiFunction)}
+	 * .
+	 */
+	@Test
+	public final void testWriteStreamErrorConvertingObject() throws Exception {
+		StringWriter writer = new StringWriter();
+		thrown.expect(CSVStreamException.class);
+		CSVStream.write(writer, Stream.of(Arrays.asList("TestValue1")), Arrays.asList("TestHeader1"), (h, o) -> {
+			if (o.size() == 1) {
+				throw new IllegalArgumentException("Failing to test error handling");
+			}
+			return o;
+		});
+		fail("Should not have successfully written the document. Output was: " + writer.toString());
+	}
+
 }
