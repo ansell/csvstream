@@ -64,7 +64,7 @@ public class CSVStreamTest {
 	 */
 	@Test
 	public final void testStreamCSVIllegalHeader() throws Exception {
-		thrown.expect(RuntimeException.class);
+		thrown.expect(CSVStreamException.class);
 		thrown.expectMessage("Could not verify headers for csv file");
 		CSVStream.parse(new StringReader("Header1"), h -> {
 			throw new IllegalArgumentException("Did not find header: Header2");
@@ -81,7 +81,7 @@ public class CSVStreamTest {
 	public final void testStreamCSVEmptyInputStream() throws Exception {
 		List<String> headers = new ArrayList<>();
 
-		thrown.expect(RuntimeException.class);
+		thrown.expect(CSVStreamException.class);
 		thrown.expectMessage("CSV file did not contain a valid header line");
 		CSVStream.parse(new ByteArrayInputStream(new byte[0]), h -> headers.addAll(h), (h, l) -> l, l -> {
 		});
@@ -96,7 +96,7 @@ public class CSVStreamTest {
 	public final void testStreamCSVEmptyWriter() throws Exception {
 		List<String> headers = new ArrayList<>();
 
-		thrown.expect(RuntimeException.class);
+		thrown.expect(CSVStreamException.class);
 		thrown.expectMessage("CSV file did not contain a valid header line");
 		CSVStream.parse(new StringReader(""), h -> headers.addAll(h), (h, l) -> l, l -> {
 		});
@@ -111,7 +111,7 @@ public class CSVStreamTest {
 	public final void testStreamCSVSingleColumnMoreOnRow() throws Exception {
 		List<String> headers = new ArrayList<>();
 
-		thrown.expect(RuntimeException.class);
+		thrown.expect(CSVStreamException.class);
 		CSVStream.parse(new StringReader("Test1\nAnswer1,Answer2,Answer3"), h -> headers.addAll(h), (h, l) -> l, l -> {
 		});
 	}
@@ -125,7 +125,7 @@ public class CSVStreamTest {
 	public final void testStreamCSVMultipleColumnsLessOnRow() throws Exception {
 		List<String> headers = new ArrayList<>();
 
-		thrown.expect(RuntimeException.class);
+		thrown.expect(CSVStreamException.class);
 		CSVStream.parse(new StringReader("Test1, Another2, Else3\nAnswer1"), h -> headers.addAll(h), (h, l) -> l, l -> {
 		});
 	}
@@ -325,12 +325,12 @@ public class CSVStreamTest {
 		assertTrue("Headers were not recognised", headersGood.get());
 		assertTrue("Line was not recognised", lineGood.get());
 	}
-	
+
 	@Test
 	public final void testWriteStreamSingleValue() throws Exception {
 		StringWriter writer = new StringWriter();
-		CSVStream.write(writer , Stream.of(Arrays.asList("TestValue1")), Arrays.asList("TestHeader1"), (h, o) -> o);
-		
+		CSVStream.write(writer, Stream.of(Arrays.asList("TestValue1")), Arrays.asList("TestHeader1"), (h, o) -> o);
+
 		System.out.println(writer.toString());
 		assertEquals("TestHeader1\nTestValue1\n", writer.toString());
 
