@@ -44,6 +44,7 @@ import com.fasterxml.jackson.databind.SequenceWriter;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvParser;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+import com.fasterxml.jackson.dataformat.csv.CsvSchema.ColumnType;
 
 /**
  * Implements streaming of CSV files for both parsing and writing using Java-8
@@ -285,14 +286,8 @@ public final class CSVStream {
 	 *            The list of strings in the header.
 	 * @return A {@link CsvSchema} object including the given header items.
 	 */
-	public static CsvSchema buildSchema(List<String> header) {
-		CsvSchema.Builder result = CsvSchema.builder();
-
-		for (String nextHeader : header) {
-			result = result.addColumn(nextHeader);
-		}
-
-		return result.setUseHeader(true).build();
+	public static CsvSchema buildSchema(List<String> headers) {
+		return CsvSchema.builder().addColumns(headers, ColumnType.STRING).setUseHeader(true).build();
 	}
 
 }
