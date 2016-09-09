@@ -6,6 +6,9 @@ Java-8 based CSV streaming, based on the Jackson CSV parser.
 
 # Changelog
 
+## 2016-09-09
+* Release 0.0.1
+
 ## 2016-08-29
 * Add CSVStream.write
 
