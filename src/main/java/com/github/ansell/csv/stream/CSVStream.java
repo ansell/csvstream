@@ -67,7 +67,7 @@ public final class CSVStream {
 	 * 
 	 * @param inputStream
 	 *            The {@link InputStream} containing the CSV file.
-	 * @param headerValidator
+	 * @param headersValidator
 	 *            The validator of the header line. Throwing
 	 *            IllegalArgumentException or other RuntimeExceptions causes the
 	 *            parsing process to short-circuit after parsing the header
@@ -86,11 +86,11 @@ public final class CSVStream {
 	 * @throws CSVStreamException
 	 *             If an error occurred validating the input.
 	 */
-	public static <T> void parse(final InputStream inputStream, final Consumer<List<String>> headerValidator,
+	public static <T> void parse(final InputStream inputStream, final Consumer<List<String>> headersValidator,
 			final BiFunction<List<String>, List<String>, T> lineConverter, final Consumer<T> resultConsumer)
 			throws IOException, CSVStreamException {
 		try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);) {
-			parse(inputStreamReader, headerValidator, lineConverter, resultConsumer);
+			parse(inputStreamReader, headersValidator, lineConverter, resultConsumer);
 		}
 	}
 
@@ -101,7 +101,7 @@ public final class CSVStream {
 	 * 
 	 * @param reader
 	 *            The {@link Reader} containing the CSV file.
-	 * @param headerValidator
+	 * @param headersValidator
 	 *            The validator of the header line. Throwing
 	 *            IllegalArgumentException or other RuntimeExceptions causes the
 	 *            parsing process to short-circuit after parsing the header
@@ -120,7 +120,7 @@ public final class CSVStream {
 	 * @throws CSVStreamException
 	 *             If an error occurred validating the input.
 	 */
-	public static <T> void parse(final Reader reader, final Consumer<List<String>> headerValidator,
+	public static <T> void parse(final Reader reader, final Consumer<List<String>> headersValidator,
 			final BiFunction<List<String>, List<String>, T> lineConverter, final Consumer<T> resultConsumer)
 			throws IOException, CSVStreamException {
 		final CsvMapper mapper = new CsvMapper();
@@ -136,7 +136,7 @@ public final class CSVStream {
 				if (headers == null) {
 					headers = nextLine.stream().map(v -> v.trim()).map(v -> v.intern()).collect(Collectors.toList());
 					try {
-						headerValidator.accept(headers);
+						headersValidator.accept(headers);
 					} catch (final Exception e) {
 						throw new CSVStreamException("Could not verify headers for csv file", e);
 					}
@@ -204,7 +204,7 @@ public final class CSVStream {
 	 * 
 	 * @param outputStream
 	 *            The writer which will receive the CSV file.
-	 * @param header
+	 * @param headers
 	 *            The column headers that will be used by the returned Jackson
 	 *            {@link SequenceWriter}.
 	 * @return A Jackson {@link SequenceWriter} that can have
@@ -214,8 +214,8 @@ public final class CSVStream {
 	 *             If there is a problem writing the CSV header line to the
 	 *             {@link OutputStream}.
 	 */
-	public static SequenceWriter newCSVWriter(final OutputStream outputStream, List<String> header) throws IOException {
-		return newCSVWriter(outputStream, buildSchema(header));
+	public static SequenceWriter newCSVWriter(final OutputStream outputStream, List<String> headers) throws IOException {
+		return newCSVWriter(outputStream, buildSchema(headers));
 	}
 
 	/**
@@ -245,7 +245,7 @@ public final class CSVStream {
 	 * 
 	 * @param writer
 	 *            The writer which will receive the CSV file.
-	 * @param header
+	 * @param headers
 	 *            The column headers that will be used by the returned Jackson
 	 *            {@link SequenceWriter}.
 	 * @return A Jackson {@link SequenceWriter} that can have
@@ -255,8 +255,8 @@ public final class CSVStream {
 	 *             If there is a problem writing the CSV header line to the
 	 *             {@link Writer}.
 	 */
-	public static SequenceWriter newCSVWriter(final Writer writer, List<String> header) throws IOException {
-		return newCSVWriter(writer, buildSchema(header));
+	public static SequenceWriter newCSVWriter(final Writer writer, List<String> headers) throws IOException {
+		return newCSVWriter(writer, buildSchema(headers));
 	}
 
 	/**
@@ -282,7 +282,7 @@ public final class CSVStream {
 	/**
 	 * Build a {@link CsvSchema} object using the given headers.
 	 * 
-	 * @param header
+	 * @param headers
 	 *            The list of strings in the header.
 	 * @return A {@link CsvSchema} object including the given header items.
 	 */
