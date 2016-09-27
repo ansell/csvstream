@@ -157,6 +157,8 @@ public final class CSVStream {
 					}
 				}
 			}
+		} catch (IOException | CSVStreamException e) {
+			throw e;
 		} catch (Exception e) {
 			throw new CSVStreamException(e);
 		}
