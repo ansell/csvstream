@@ -25,6 +25,7 @@
  */
 package com.github.ansell.csv.stream;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -89,7 +90,8 @@ public final class CSVStream {
 	public static <T> void parse(final InputStream inputStream, final Consumer<List<String>> headersValidator,
 			final BiFunction<List<String>, List<String>, T> lineConverter, final Consumer<T> resultConsumer)
 			throws IOException, CSVStreamException {
-		try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);) {
+		try (final Reader inputStreamReader = new BufferedReader(
+				new InputStreamReader(inputStream, StandardCharsets.UTF_8));) {
 			parse(inputStreamReader, headersValidator, lineConverter, resultConsumer);
 		}
 	}
@@ -214,7 +216,8 @@ public final class CSVStream {
 	 *             If there is a problem writing the CSV header line to the
 	 *             {@link OutputStream}.
 	 */
-	public static SequenceWriter newCSVWriter(final OutputStream outputStream, List<String> headers) throws IOException {
+	public static SequenceWriter newCSVWriter(final OutputStream outputStream, List<String> headers)
+			throws IOException {
 		return newCSVWriter(outputStream, buildSchema(headers));
 	}
 
