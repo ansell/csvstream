@@ -216,7 +216,7 @@ public final class CSVStream {
 			try {
 				headersValidator.accept(headers);
 			} catch (final Exception e) {
-				throw new CSVStreamException("Could not verify headers for csv file", e);
+				throw new CSVStreamException("Could not verify substituted headers for csv file", e);
 			}
 		}
 		
