@@ -60,7 +60,7 @@ public class CSVStreamTest {
 
 	/**
 	 * Test method for
-	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.Reader, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer)}
+	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.Reader, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer, List, int)}
 	 * .
 	 */
 	@Test
@@ -75,7 +75,7 @@ public class CSVStreamTest {
 
 	/**
 	 * Test method for
-	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.InputStream, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer)}
+	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.InputStream, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer, List, int)}
 	 * .
 	 */
 	@Test
@@ -90,7 +90,7 @@ public class CSVStreamTest {
 
 	/**
 	 * Test method for
-	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.InputStream, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer)}
+	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.InputStream, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer, List, int)}
 	 * .
 	 */
 	@Test
@@ -104,7 +104,7 @@ public class CSVStreamTest {
 
 	/**
 	 * Test method for
-	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.Reader, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer)}
+	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.Reader, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer, List, int)}
 	 * .
 	 */
 	@Test
@@ -119,7 +119,7 @@ public class CSVStreamTest {
 
 	/**
 	 * Test method for
-	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.Reader, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer)}
+	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.Reader, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer, List, int)}
 	 * .
 	 */
 	@Test
@@ -133,7 +133,7 @@ public class CSVStreamTest {
 
 	/**
 	 * Test method for
-	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.Reader, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer)}
+	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.Reader, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer, List, int)}
 	 * .
 	 */
 	@Test
@@ -147,7 +147,7 @@ public class CSVStreamTest {
 
 	/**
 	 * Test method for
-	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.Reader, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer)}
+	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.Reader, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer, List, int)}
 	 * .
 	 */
 	@Test
@@ -163,7 +163,7 @@ public class CSVStreamTest {
 
 	/**
 	 * Test method for
-	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.Reader, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer)}
+	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.Reader, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer, List, int)}
 	 * .
 	 */
 	@Test
@@ -182,7 +182,7 @@ public class CSVStreamTest {
 
 	/**
 	 * Test method for
-	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.Reader, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer)}
+	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.Reader, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer, List, int)}
 	 * .
 	 */
 	@Test
@@ -199,7 +199,7 @@ public class CSVStreamTest {
 
 	/**
 	 * Test method for
-	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.Reader, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer)}
+	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.Reader, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer, List, int)}
 	 * .
 	 */
 	@Test
@@ -219,7 +219,7 @@ public class CSVStreamTest {
 
 	/**
 	 * Test method for
-	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.Reader, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer)}
+	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.Reader, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer, List, int)}
 	 * .
 	 */
 	@Test
@@ -239,7 +239,7 @@ public class CSVStreamTest {
 
 	/**
 	 * Test method for
-	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.Reader, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer)}
+	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.Reader, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer, List, int)}
 	 * .
 	 */
 	@Test
@@ -383,6 +383,34 @@ public class CSVStreamTest {
 			return o;
 		});
 		fail("Should not have successfully written the document. Output was: " + writer.toString());
+	}
+
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.Reader, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer, List, int)}
+	 * .
+	 */
+	@Test
+	public final void testStreamCSVNegativeHeaderCount() throws Exception {
+		thrown.expect(IllegalArgumentException.class);
+		thrown.expectMessage("Header line count must be non-negative.");
+		CSVStream.parse(new StringReader("Test"), h -> {
+		}, (h, l) -> l, l -> {
+		}, null, -1);
+	}
+
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.Reader, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer, List, int)}
+	 * .
+	 */
+	@Test
+	public final void testStreamCSVZeroHeadersNoSubstitutes() throws Exception {
+		thrown.expect(IllegalArgumentException.class);
+		thrown.expectMessage("If there are no header lines, a substitute set of headers must be defined.");
+		CSVStream.parse(new StringReader("Test"), h -> {
+		}, (h, l) -> l, l -> {
+		}, null, 0);
 	}
 
 }
