@@ -413,4 +413,30 @@ public class CSVStreamTest {
 		}, null, 0);
 	}
 
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.Reader, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer, List, int)}
+	 * .
+	 */
+	@Test
+	public final void testStreamCSVZeroHeadersWithSubstitutesValid() throws Exception {
+		
+		AtomicBoolean headersGood = new AtomicBoolean(false);
+		AtomicBoolean lineGood = new AtomicBoolean(false);
+		CSVStream.parse(new StringReader("TestValue1"), h -> {
+			if (h.size() == 1 && h.contains("TestHeader1")) {
+				headersGood.set(true);
+			}
+		}, (h, l) -> {
+			if (l.size() == 1 && l.contains("TestValue1")) {
+				lineGood.set(true);
+			}
+			return l;
+		}, l -> {
+		}, Arrays.asList("TestHeader1"), 0);
+
+		assertTrue("Headers were not recognised", headersGood.get());
+		assertTrue("Line was not recognised", lineGood.get());
+	}
+
 }

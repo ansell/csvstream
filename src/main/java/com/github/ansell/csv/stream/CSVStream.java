@@ -210,8 +210,17 @@ public final class CSVStream {
 		mapper.enable(CsvParser.Feature.WRAP_AS_ARRAY);
 		mapper.configure(JsonParser.Feature.ALLOW_YAML_COMMENTS, true);
 
-		List<String> headers = null;
+		List<String> headers = substituteHeaders;
 
+		if(headers != null) {
+			try {
+				headersValidator.accept(headers);
+			} catch (final Exception e) {
+				throw new CSVStreamException("Could not verify headers for csv file", e);
+			}
+		}
+		
+		int lineCount = 0;
 		try (final MappingIterator<List<String>> it = mapper.readerFor(List.class).readValues(reader);) {
 			while (it.hasNext()) {
 				List<String> nextLine = it.next();
@@ -222,7 +231,7 @@ public final class CSVStream {
 					} catch (final Exception e) {
 						throw new CSVStreamException("Could not verify headers for csv file", e);
 					}
-				} else {
+				} else if (lineCount <= headerLineCount) {
 					if (nextLine.size() != headers.size()) {
 						throw new CSVStreamException(
 								"Line and header sizes were different: " + headers + " " + nextLine);
@@ -236,6 +245,7 @@ public final class CSVStream {
 						resultConsumer.accept(apply);
 					}
 				}
+				lineCount++;
 			}
 		} catch (IOException | CSVStreamException e) {
 			throw e;
