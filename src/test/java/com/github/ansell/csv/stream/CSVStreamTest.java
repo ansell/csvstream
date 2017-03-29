@@ -419,6 +419,36 @@ public class CSVStreamTest {
 	 * .
 	 */
 	@Test
+	public final void testStreamCSVFailSubstitutedHeaderValidation() throws Exception {
+		thrown.expect(CSVStreamException.class);
+		thrown.expectMessage("Could not verify substituted headers for csv file");
+		CSVStream.parse(new StringReader("TestHeaderWhichShouldNotBeSeen"), h -> { 
+			throw new RuntimeException("Testing failure of validation for substituted headers: " + h.toString());
+		}, (h, l) -> l, l -> {
+		}, Arrays.asList("TestSubstitutedHeader"), 0);
+	}
+
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.Reader, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer, List, int)}
+	 * .
+	 */
+	@Test
+	public final void testStreamCSVFailSubstitutedHeaderValidationOther() throws Exception {
+		thrown.expect(CSVStreamException.class);
+		thrown.expectMessage("Could not verify substituted headers for csv file");
+		CSVStream.parse(new StringReader("TestHeaderWhichShouldNotBeSeen"), h -> { 
+			throw new RuntimeException("Testing failure of validation for substituted headers: " + h.toString());
+		}, (h, l) -> l, l -> {
+		}, Arrays.asList("TestSubstitutedHeader"), 1);
+	}
+
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.Reader, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer, List, int)}
+	 * .
+	 */
+	@Test
 	public final void testStreamCSVZeroHeadersWithSubstitutesValid() throws Exception {
 		
 		AtomicBoolean headersGood = new AtomicBoolean(false);
