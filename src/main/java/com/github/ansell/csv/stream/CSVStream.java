@@ -231,7 +231,7 @@ public final class CSVStream {
 					} catch (final Exception e) {
 						throw new CSVStreamException("Could not verify headers for csv file", e);
 					}
-				} else if (lineCount <= headerLineCount) {
+				} else if (lineCount >= headerLineCount) {
 					if (nextLine.size() != headers.size()) {
 						throw new CSVStreamException(
 								"Line and header sizes were different: " + headers + " " + nextLine);
