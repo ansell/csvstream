@@ -203,8 +203,9 @@ public final class CSVStream {
 			final BiFunction<List<String>, List<String>, T> lineConverter, final Consumer<T> resultConsumer,
 			final List<String> substituteHeaders, int headerLineCount) throws IOException, CSVStreamException {
 		final CsvMapper mapper = defaultMapper();
+		final CsvSchema schema = CsvSchema.emptySchema();
 
-		parse(reader, headersValidator, lineConverter, resultConsumer, substituteHeaders, headerLineCount, mapper);
+		parse(reader, headersValidator, lineConverter, resultConsumer, substituteHeaders, headerLineCount, mapper, schema);
 	}
 
 	/**
@@ -241,7 +242,7 @@ public final class CSVStream {
 	 */
 	public static <T> void parse(final Reader reader, final Consumer<List<String>> headersValidator,
 			final BiFunction<List<String>, List<String>, T> lineConverter, final Consumer<T> resultConsumer,
-			final List<String> substituteHeaders, int headerLineCount, CsvMapper mapper)
+			final List<String> substituteHeaders, int headerLineCount, CsvMapper mapper, CsvSchema schema)
 			throws IOException, CSVStreamException {
 
 		if (headerLineCount < 0) {
@@ -264,7 +265,7 @@ public final class CSVStream {
 		}
 
 		int lineCount = 0;
-		try (final MappingIterator<List<String>> it = mapper.readerFor(List.class).readValues(reader);) {
+		try (final MappingIterator<List<String>> it = mapper.readerFor(List.class).with(schema).readValues(reader);) {
 			while (it.hasNext()) {
 				List<String> nextLine = it.next();
 				if (headers == null) {
