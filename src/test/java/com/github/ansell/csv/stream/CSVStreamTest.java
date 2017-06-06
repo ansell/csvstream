@@ -732,4 +732,74 @@ public class CSVStreamTest {
 		assertFalse("Too many lines", lineError.get());
 	}
 
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.Reader, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer, List, int)}
+	 * .
+	 */
+	@Test
+	public final void testStreamCSVQuoteAndEscapeChanged() throws Exception {
+		
+		AtomicBoolean headersGood = new AtomicBoolean(false);
+		AtomicBoolean lineGood = new AtomicBoolean(false);
+		AtomicBoolean foundLine = new AtomicBoolean(false);
+		AtomicBoolean lineError = new AtomicBoolean(false);
+		// The default mapper skips comment lines
+		CsvMapper mapper = CSVStream.defaultMapper();
+		CsvSchema schema = CsvSchema.builder().setQuoteChar('\'').setEscapeChar('\'').build();
+		CSVStream.parse(new StringReader("'Test''\nHeader1'\n'Test''Value1'"), h -> {
+			if (h.size() == 1 && h.contains("Test'\nHeader1")) {
+				headersGood.set(true);
+			}
+		}, (h, l) -> {
+			if (foundLine.compareAndSet(false, true) && l.size() == 1 && l.contains("Test'Value1")) {
+				lineGood.set(true);
+			} else {
+				lineError.set(true);
+			}
+			return l;
+		}, l -> {
+		}, null, 1, mapper, schema);
+
+		assertTrue("Headers were not recognised", headersGood.get());
+		assertTrue("Line was not recognised", lineGood.get());
+		assertTrue("Line was not found", foundLine.get());
+		assertFalse("Too many lines", lineError.get());
+	}
+
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.Reader, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer, List, int)}
+	 * .
+	 */
+	@Test
+	public final void testStreamCSVQuoteAndEscapeChangedDifferent() throws Exception {
+		
+		AtomicBoolean headersGood = new AtomicBoolean(false);
+		AtomicBoolean lineGood = new AtomicBoolean(false);
+		AtomicBoolean foundLine = new AtomicBoolean(false);
+		AtomicBoolean lineError = new AtomicBoolean(false);
+		// The default mapper skips comment lines
+		CsvMapper mapper = CSVStream.defaultMapper();
+		CsvSchema schema = CsvSchema.builder().setQuoteChar('\'').setEscapeChar('"').build();
+		CSVStream.parse(new StringReader("'Test\"\"\nHeader1'\n'Test\"\"Value1'"), h -> {
+			if (h.size() == 1 && h.contains("Test\"\nHeader1")) {
+				headersGood.set(true);
+			}
+		}, (h, l) -> {
+			if (foundLine.compareAndSet(false, true) && l.size() == 1 && l.contains("Test\"Value1")) {
+				lineGood.set(true);
+			} else {
+				lineError.set(true);
+			}
+			return l;
+		}, l -> {
+		}, null, 1, mapper, schema);
+
+		assertTrue("Headers were not recognised", headersGood.get());
+		assertTrue("Line was not recognised", lineGood.get());
+		assertTrue("Line was not found", foundLine.get());
+		assertFalse("Too many lines", lineError.get());
+	}
+
 }
