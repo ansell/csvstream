@@ -33,6 +33,7 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -281,6 +282,34 @@ public final class CSVStream {
 	 */
 	public static <T> void write(final Writer writer, final Stream<T> objects, final List<String> headers,
 			final BiFunction<List<String>, T, List<String>> objectConverter) throws IOException, CSVStreamException {
+		write(writer, objects, buildSchema(headers), objectConverter);
+	}
+
+	/**
+	 * Writes objects from the given {@link Stream} to the given {@link Writer}
+	 * in CSV format, converting them to a {@link List} of String's using the
+	 * given {@link BiFunction}.
+	 * 
+	 * @param writer
+	 *            The Writer that will receive the CSV file.
+	 * @param objects
+	 *            The Stream of objects to be written
+	 * @param schema
+	 *            The {@link CsvSchema} to use for the resulting CSV file.
+	 * @param objectConverter
+	 *            The function to convert an individual object to a line in the
+	 *            resulting CSV file, represented as a List of String's.
+	 * @param <T>
+	 *            The type of the objects to be converted.
+	 * @throws IOException
+	 *             If an error occurred accessing the output stream.
+	 * @throws CSVStreamException
+	 *             If an error occurred converting or serialising the objects.
+	 */
+	public static <T> void write(final Writer writer, final Stream<T> objects, final CsvSchema schema,
+			final BiFunction<List<String>, T, List<String>> objectConverter) throws IOException, CSVStreamException {
+		List<String> headers = new ArrayList<>();
+		schema.iterator().forEachRemaining(c -> headers.add(c.getName()));
 		try (SequenceWriter csvWriter = newCSVWriter(writer, headers);) {
 			objects.forEachOrdered(o -> {
 				try {
