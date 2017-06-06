@@ -197,6 +197,46 @@ public final class CSVStream {
 			final BiFunction<List<String>, List<String>, T> lineConverter, final Consumer<T> resultConsumer, 
 			final List<String> substituteHeaders, int headerLineCount)
 			throws IOException, CSVStreamException {
+		final CsvMapper mapper = new CsvMapper();
+		mapper.enable(CsvParser.Feature.TRIM_SPACES);
+		mapper.enable(CsvParser.Feature.WRAP_AS_ARRAY);
+		mapper.configure(JsonParser.Feature.ALLOW_YAML_COMMENTS, true);
+		
+		parse(reader, headersValidator, lineConverter, resultConsumer, substituteHeaders, headerLineCount, mapper);
+	}
+	
+	/**
+	 * Stream a CSV file from the given Reader through the header validator,
+	 * line checker, and if the line checker succeeds, send the
+	 * checked/converted line to the consumer.
+	 * 
+	 * @param reader
+	 *            The {@link Reader} containing the CSV file.
+	 * @param headersValidator
+	 *            The validator of the header line. Throwing
+	 *            IllegalArgumentException or other RuntimeExceptions causes the
+	 *            parsing process to short-circuit after parsing the header
+	 *            line, with a CSVStreamException being rethrown by this code.
+	 * @param lineConverter
+	 *            The validator and converter of lines, based on the header
+	 *            line. If the lineChecker returns null, the line will not be
+	 *            passed to the writer.
+	 * @param resultConsumer
+	 *            The consumer of the checked lines.
+	 * @param substituteHeaders A substitute set of headers or null to use the headers from the file. If this is null and headerLineCount is set to 0, an IllegalArgumentException ill be thrown.
+	 * @param headerLineCount The number of header lines to expect
+	 * @param <T>
+	 *            The type of the results that will be created by the
+	 *            lineChecker and pushed into the writer {@link Consumer}.
+	 * @throws IOException
+	 *             If an error occurred accessing the input.
+	 * @throws CSVStreamException
+	 *             If an error occurred validating the input.
+	 */
+	public static <T> void parse(final Reader reader, final Consumer<List<String>> headersValidator,
+			final BiFunction<List<String>, List<String>, T> lineConverter, final Consumer<T> resultConsumer, 
+			final List<String> substituteHeaders, int headerLineCount, CsvMapper mapper)
+			throws IOException, CSVStreamException {
 		
 		if(headerLineCount < 0) {
 			throw new IllegalArgumentException("Header line count must be non-negative.");
@@ -206,11 +246,6 @@ public final class CSVStream {
 			throw new IllegalArgumentException("If there are no header lines, a substitute set of headers must be defined.");
 		}
 		
-		final CsvMapper mapper = new CsvMapper();
-		mapper.enable(CsvParser.Feature.TRIM_SPACES);
-		mapper.enable(CsvParser.Feature.WRAP_AS_ARRAY);
-		mapper.configure(JsonParser.Feature.ALLOW_YAML_COMMENTS, true);
-
 		List<String> headers = substituteHeaders;
 
 		if(headers != null) {
