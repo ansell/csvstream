@@ -203,9 +203,10 @@ public final class CSVStream {
 			final BiFunction<List<String>, List<String>, T> lineConverter, final Consumer<T> resultConsumer,
 			final List<String> substituteHeaders, int headerLineCount) throws IOException, CSVStreamException {
 		final CsvMapper mapper = defaultMapper();
-		final CsvSchema schema = CsvSchema.emptySchema();
+		final CsvSchema schema = defaultSchema();
 
-		parse(reader, headersValidator, lineConverter, resultConsumer, substituteHeaders, headerLineCount, mapper, schema);
+		parse(reader, headersValidator, lineConverter, resultConsumer, substituteHeaders, headerLineCount, mapper,
+				schema);
 	}
 
 	/**
@@ -470,6 +471,17 @@ public final class CSVStream {
 		mapper.enable(CsvParser.Feature.WRAP_AS_ARRAY);
 		mapper.configure(JsonParser.Feature.ALLOW_YAML_COMMENTS, true);
 		return mapper;
+	}
+
+	/**
+	 * Returns a {@link CsvSchema} that contains the default settings used by
+	 * csvstream.
+	 * 
+	 * @return A new {@link CsvSchema} setup to match the defaults used by
+	 *         csvstream
+	 */
+	public static CsvSchema defaultSchema() {
+		return CsvSchema.emptySchema();
 	}
 
 }
