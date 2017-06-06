@@ -57,7 +57,7 @@ import com.fasterxml.jackson.dataformat.csv.CsvSchema.ColumnType;
 public final class CSVStream {
 
 	public static final int DEFAULT_HEADER_COUNT = 1;
-	
+
 	/**
 	 * Private constructor for static only class
 	 */
@@ -128,8 +128,8 @@ public final class CSVStream {
 	public static <T> void parse(final Reader reader, final Consumer<List<String>> headersValidator,
 			final BiFunction<List<String>, List<String>, T> lineConverter, final Consumer<T> resultConsumer)
 			throws IOException, CSVStreamException {
-				parse(reader, headersValidator, lineConverter, resultConsumer, null);
-			}
+		parse(reader, headersValidator, lineConverter, resultConsumer, null);
+	}
 
 	/**
 	 * Stream a CSV file from the given Reader through the header validator,
@@ -149,7 +149,10 @@ public final class CSVStream {
 	 *            passed to the writer.
 	 * @param resultConsumer
 	 *            The consumer of the checked lines.
-	 * @param substituteHeaders A substitute set of headers or null to use the headers from the file. If this is null the first line of the file will be used.
+	 * @param substituteHeaders
+	 *            A substitute set of headers or null to use the headers from
+	 *            the file. If this is null the first line of the file will be
+	 *            used.
 	 * @param <T>
 	 *            The type of the results that will be created by the
 	 *            lineChecker and pushed into the writer {@link Consumer}.
@@ -159,11 +162,10 @@ public final class CSVStream {
 	 *             If an error occurred validating the input.
 	 */
 	public static <T> void parse(final Reader reader, final Consumer<List<String>> headersValidator,
-			final BiFunction<List<String>, List<String>, T> lineConverter, final Consumer<T> resultConsumer, 
-			final List<String> substituteHeaders)
-			throws IOException, CSVStreamException {
-				parse(reader, headersValidator, lineConverter, resultConsumer, substituteHeaders, DEFAULT_HEADER_COUNT);
-			}
+			final BiFunction<List<String>, List<String>, T> lineConverter, final Consumer<T> resultConsumer,
+			final List<String> substituteHeaders) throws IOException, CSVStreamException {
+		parse(reader, headersValidator, lineConverter, resultConsumer, substituteHeaders, DEFAULT_HEADER_COUNT);
+	}
 
 	/**
 	 * Stream a CSV file from the given Reader through the header validator,
@@ -183,8 +185,12 @@ public final class CSVStream {
 	 *            passed to the writer.
 	 * @param resultConsumer
 	 *            The consumer of the checked lines.
-	 * @param substituteHeaders A substitute set of headers or null to use the headers from the file. If this is null and headerLineCount is set to 0, an IllegalArgumentException ill be thrown.
-	 * @param headerLineCount The number of header lines to expect
+	 * @param substituteHeaders
+	 *            A substitute set of headers or null to use the headers from
+	 *            the file. If this is null and headerLineCount is set to 0, an
+	 *            IllegalArgumentException ill be thrown.
+	 * @param headerLineCount
+	 *            The number of header lines to expect
 	 * @param <T>
 	 *            The type of the results that will be created by the
 	 *            lineChecker and pushed into the writer {@link Consumer}.
@@ -194,17 +200,13 @@ public final class CSVStream {
 	 *             If an error occurred validating the input.
 	 */
 	public static <T> void parse(final Reader reader, final Consumer<List<String>> headersValidator,
-			final BiFunction<List<String>, List<String>, T> lineConverter, final Consumer<T> resultConsumer, 
-			final List<String> substituteHeaders, int headerLineCount)
-			throws IOException, CSVStreamException {
-		final CsvMapper mapper = new CsvMapper();
-		mapper.enable(CsvParser.Feature.TRIM_SPACES);
-		mapper.enable(CsvParser.Feature.WRAP_AS_ARRAY);
-		mapper.configure(JsonParser.Feature.ALLOW_YAML_COMMENTS, true);
-		
+			final BiFunction<List<String>, List<String>, T> lineConverter, final Consumer<T> resultConsumer,
+			final List<String> substituteHeaders, int headerLineCount) throws IOException, CSVStreamException {
+		final CsvMapper mapper = defaultMapper();
+
 		parse(reader, headersValidator, lineConverter, resultConsumer, substituteHeaders, headerLineCount, mapper);
 	}
-	
+
 	/**
 	 * Stream a CSV file from the given Reader through the header validator,
 	 * line checker, and if the line checker succeeds, send the
@@ -223,8 +225,12 @@ public final class CSVStream {
 	 *            passed to the writer.
 	 * @param resultConsumer
 	 *            The consumer of the checked lines.
-	 * @param substituteHeaders A substitute set of headers or null to use the headers from the file. If this is null and headerLineCount is set to 0, an IllegalArgumentException ill be thrown.
-	 * @param headerLineCount The number of header lines to expect
+	 * @param substituteHeaders
+	 *            A substitute set of headers or null to use the headers from
+	 *            the file. If this is null and headerLineCount is set to 0, an
+	 *            IllegalArgumentException ill be thrown.
+	 * @param headerLineCount
+	 *            The number of header lines to expect
 	 * @param <T>
 	 *            The type of the results that will be created by the
 	 *            lineChecker and pushed into the writer {@link Consumer}.
@@ -234,28 +240,29 @@ public final class CSVStream {
 	 *             If an error occurred validating the input.
 	 */
 	public static <T> void parse(final Reader reader, final Consumer<List<String>> headersValidator,
-			final BiFunction<List<String>, List<String>, T> lineConverter, final Consumer<T> resultConsumer, 
+			final BiFunction<List<String>, List<String>, T> lineConverter, final Consumer<T> resultConsumer,
 			final List<String> substituteHeaders, int headerLineCount, CsvMapper mapper)
 			throws IOException, CSVStreamException {
-		
-		if(headerLineCount < 0) {
+
+		if (headerLineCount < 0) {
 			throw new IllegalArgumentException("Header line count must be non-negative.");
 		}
-		
-		if(headerLineCount < 1 && substituteHeaders == null) {
-			throw new IllegalArgumentException("If there are no header lines, a substitute set of headers must be defined.");
+
+		if (headerLineCount < 1 && substituteHeaders == null) {
+			throw new IllegalArgumentException(
+					"If there are no header lines, a substitute set of headers must be defined.");
 		}
-		
+
 		List<String> headers = substituteHeaders;
 
-		if(headers != null) {
+		if (headers != null) {
 			try {
 				headersValidator.accept(headers);
 			} catch (final Exception e) {
 				throw new CSVStreamException("Could not verify substituted headers for csv file", e);
 			}
 		}
-		
+
 		int lineCount = 0;
 		try (final MappingIterator<List<String>> it = mapper.readerFor(List.class).readValues(reader);) {
 			while (it.hasNext()) {
@@ -394,7 +401,7 @@ public final class CSVStream {
 	 *             {@link OutputStream}.
 	 */
 	public static SequenceWriter newCSVWriter(final OutputStream outputStream, CsvSchema schema) throws IOException {
-		return new CsvMapper().writerWithDefaultPrettyPrinter().with(schema).forType(List.class)
+		return defaultMapper().writerWithDefaultPrettyPrinter().with(schema).forType(List.class)
 				.writeValues(outputStream);
 	}
 
@@ -435,7 +442,7 @@ public final class CSVStream {
 	 *             {@link Writer}.
 	 */
 	public static SequenceWriter newCSVWriter(final Writer writer, CsvSchema schema) throws IOException {
-		return new CsvMapper().writerWithDefaultPrettyPrinter().with(schema).forType(List.class).writeValues(writer);
+		return defaultMapper().writerWithDefaultPrettyPrinter().with(schema).forType(List.class).writeValues(writer);
 	}
 
 	/**
@@ -447,6 +454,21 @@ public final class CSVStream {
 	 */
 	public static CsvSchema buildSchema(List<String> headers) {
 		return CsvSchema.builder().addColumns(headers, ColumnType.STRING).setUseHeader(true).build();
+	}
+
+	/**
+	 * Returns a {@link CsvMapper} that contains the default settings used by
+	 * csvstream.
+	 * 
+	 * @return A new {@link CsvMapper} setup to match the defaults used by
+	 *         csvstream
+	 */
+	public static CsvMapper defaultMapper() {
+		final CsvMapper mapper = new CsvMapper();
+		mapper.enable(CsvParser.Feature.TRIM_SPACES);
+		mapper.enable(CsvParser.Feature.WRAP_AS_ARRAY);
+		mapper.configure(JsonParser.Feature.ALLOW_YAML_COMMENTS, true);
+		return mapper;
 	}
 
 }
