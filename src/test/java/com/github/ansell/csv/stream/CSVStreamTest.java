@@ -565,4 +565,311 @@ public class CSVStreamTest {
 		assertFalse("Too many lines", lineError.get());
 	}
 
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.Reader, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer, List, int)}
+	 * .
+	 */
+	@Test
+	public final void testStreamCSVUnescapedNewLineRFC4180() throws Exception {
+		
+		AtomicBoolean headersGood = new AtomicBoolean(false);
+		AtomicBoolean lineGood = new AtomicBoolean(false);
+		AtomicBoolean foundLine = new AtomicBoolean(false);
+		AtomicBoolean lineError = new AtomicBoolean(false);
+		CSVStream.parse(new StringReader("TestHeader1\n\"Test\nValue1\""), h -> {
+			if (h.size() == 1 && h.contains("TestHeader1")) {
+				headersGood.set(true);
+			}
+		}, (h, l) -> {
+			if (foundLine.compareAndSet(false, true) && l.size() == 1 && l.contains("Test\nValue1")) {
+				lineGood.set(true);
+			} else {
+				lineError.set(true);
+			}
+			return l;
+		}, l -> {
+		}, null, 1);
+
+		assertTrue("Headers were not recognised", headersGood.get());
+		assertTrue("Line was not recognised", lineGood.get());
+		assertTrue("Line was not found", foundLine.get());
+		assertFalse("Too many lines", lineError.get());
+	}
+
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.Reader, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer, List, int)}
+	 * .
+	 */
+	@Test
+	public final void testStreamCSVUnescapedNewLineRFC4180Header() throws Exception {
+		
+		AtomicBoolean headersGood = new AtomicBoolean(false);
+		AtomicBoolean lineGood = new AtomicBoolean(false);
+		AtomicBoolean foundLine = new AtomicBoolean(false);
+		AtomicBoolean lineError = new AtomicBoolean(false);
+		CSVStream.parse(new StringReader("\"Test\nHeader1\"\n\"TestValue1\""), h -> {
+			if (h.size() == 1 && h.contains("Test\nHeader1")) {
+				headersGood.set(true);
+			}
+		}, (h, l) -> {
+			if (foundLine.compareAndSet(false, true) && l.size() == 1 && l.contains("TestValue1")) {
+				lineGood.set(true);
+			} else {
+				lineError.set(true);
+			}
+			return l;
+		}, l -> {
+		}, null, 1);
+
+		assertTrue("Headers were not recognised", headersGood.get());
+		assertTrue("Line was not recognised", lineGood.get());
+		assertTrue("Line was not found", foundLine.get());
+		assertFalse("Too many lines", lineError.get());
+	}
+
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.Reader, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer, List, int)}
+	 * .
+	 */
+	@Test
+	public final void testStreamCSVCustomQuoteCharacter() throws Exception {
+		
+		AtomicBoolean headersGood = new AtomicBoolean(false);
+		AtomicBoolean lineGood = new AtomicBoolean(false);
+		AtomicBoolean foundLine = new AtomicBoolean(false);
+		AtomicBoolean lineError = new AtomicBoolean(false);
+		CsvMapper mapper = CSVStream.defaultMapper();
+		CsvSchema schema = CsvSchema.builder().setQuoteChar('\'').build();
+		CSVStream.parse(new StringReader("'Test\nHeader1'\n'TestValue1'"), h -> {
+			if (h.size() == 1 && h.contains("Test\nHeader1")) {
+				headersGood.set(true);
+			}
+		}, (h, l) -> {
+			if (foundLine.compareAndSet(false, true) && l.size() == 1 && l.contains("TestValue1")) {
+				lineGood.set(true);
+			} else {
+				lineError.set(true);
+			}
+			return l;
+		}, l -> {
+		}, null, 1, mapper, schema);
+
+		assertTrue("Headers were not recognised", headersGood.get());
+		assertTrue("Line was not recognised", lineGood.get());
+		assertTrue("Line was not found", foundLine.get());
+		assertFalse("Too many lines", lineError.get());
+	}
+
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.Reader, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer, List, int)}
+	 * .
+	 */
+	@Test
+	public final void testStreamCSVCustomQuoteCharacterInside() throws Exception {
+		
+		AtomicBoolean headersGood = new AtomicBoolean(false);
+		AtomicBoolean lineGood = new AtomicBoolean(false);
+		AtomicBoolean foundLine = new AtomicBoolean(false);
+		AtomicBoolean lineError = new AtomicBoolean(false);
+		CsvMapper mapper = CSVStream.defaultMapper();
+		CsvSchema schema = CsvSchema.builder().setQuoteChar('\'').build();
+		CSVStream.parse(new StringReader("'Test''\nHeader1'\n'TestValue1'"), h -> {
+			if (h.size() == 1 && h.contains("Test'\nHeader1")) {
+				headersGood.set(true);
+			}
+		}, (h, l) -> {
+			if (foundLine.compareAndSet(false, true) && l.size() == 1 && l.contains("TestValue1")) {
+				lineGood.set(true);
+			} else {
+				lineError.set(true);
+			}
+			return l;
+		}, l -> {
+		}, null, 1, mapper, schema);
+
+		assertTrue("Headers were not recognised", headersGood.get());
+		assertTrue("Line was not recognised", lineGood.get());
+		assertTrue("Line was not found", foundLine.get());
+		assertFalse("Too many lines", lineError.get());
+	}
+
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.Reader, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer, List, int)}
+	 * .
+	 */
+	@Test
+	public final void testStreamCSVComment() throws Exception {
+		
+		AtomicBoolean headersGood = new AtomicBoolean(false);
+		AtomicBoolean lineGood = new AtomicBoolean(false);
+		AtomicBoolean foundLine = new AtomicBoolean(false);
+		AtomicBoolean lineError = new AtomicBoolean(false);
+		// The default mapper skips comment lines
+		CsvMapper mapper = CSVStream.defaultMapper();
+		CsvSchema schema = CsvSchema.builder().setQuoteChar('\'').build();
+		CSVStream.parse(new StringReader("'Test''\nHeader1'\n#A Comment that should be skipped\n'TestValue1'"), h -> {
+			if (h.size() == 1 && h.contains("Test'\nHeader1")) {
+				headersGood.set(true);
+			}
+		}, (h, l) -> {
+			if (foundLine.compareAndSet(false, true) && l.size() == 1 && l.contains("TestValue1")) {
+				lineGood.set(true);
+			} else {
+				lineError.set(true);
+			}
+			return l;
+		}, l -> {
+		}, null, 1, mapper, schema);
+
+		assertTrue("Headers were not recognised", headersGood.get());
+		assertTrue("Line was not recognised", lineGood.get());
+		assertTrue("Line was not found", foundLine.get());
+		assertFalse("Too many lines", lineError.get());
+	}
+
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.Reader, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer, List, int)}
+	 * .
+	 */
+	@Test
+	public final void testStreamCSVQuoteAndEscapeChanged() throws Exception {
+		
+		AtomicBoolean headersGood = new AtomicBoolean(false);
+		AtomicBoolean lineGood = new AtomicBoolean(false);
+		AtomicBoolean foundLine = new AtomicBoolean(false);
+		AtomicBoolean lineError = new AtomicBoolean(false);
+		// The default mapper skips comment lines
+		CsvMapper mapper = CSVStream.defaultMapper();
+		CsvSchema schema = CsvSchema.builder().setQuoteChar('\'').setEscapeChar('\'').build();
+		CSVStream.parse(new StringReader("'Test''\nHeader1'\n'Test''Value1'"), h -> {
+			if (h.size() == 1 && h.contains("Test'\nHeader1")) {
+				headersGood.set(true);
+			}
+		}, (h, l) -> {
+			if (foundLine.compareAndSet(false, true) && l.size() == 1 && l.contains("Test'Value1")) {
+				lineGood.set(true);
+			} else {
+				lineError.set(true);
+			}
+			return l;
+		}, l -> {
+		}, null, 1, mapper, schema);
+
+		assertTrue("Headers were not recognised", headersGood.get());
+		assertTrue("Line was not recognised", lineGood.get());
+		assertTrue("Line was not found", foundLine.get());
+		assertFalse("Too many lines", lineError.get());
+	}
+
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.Reader, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer, List, int)}
+	 * .
+	 */
+	@Test
+	public final void testStreamCSVQuoteAndEscapeChangedDifferent() throws Exception {
+		
+		AtomicBoolean headersGood = new AtomicBoolean(false);
+		AtomicBoolean lineGood = new AtomicBoolean(false);
+		AtomicBoolean foundLine = new AtomicBoolean(false);
+		AtomicBoolean lineError = new AtomicBoolean(false);
+		// The default mapper skips comment lines
+		CsvMapper mapper = CSVStream.defaultMapper();
+		CsvSchema schema = CsvSchema.builder().setQuoteChar('\'').setEscapeChar('"').build();
+		CSVStream.parse(new StringReader("'Test\"\"\nHeader1'\n'Test\"\"Value1'"), h -> {
+			if (h.size() == 1 && h.contains("Test\"\nHeader1")) {
+				headersGood.set(true);
+			}
+		}, (h, l) -> {
+			if (foundLine.compareAndSet(false, true) && l.size() == 1 && l.contains("Test\"Value1")) {
+				lineGood.set(true);
+			} else {
+				lineError.set(true);
+			}
+			return l;
+		}, l -> {
+		}, null, 1, mapper, schema);
+
+		assertTrue("Headers were not recognised", headersGood.get());
+		assertTrue("Line was not recognised", lineGood.get());
+		assertTrue("Line was not found", foundLine.get());
+		assertFalse("Too many lines", lineError.get());
+	}
+
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.Reader, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer, List, int)}
+	 * .
+	 */
+	@Test
+	public final void testStreamTSVWithQuoteAndEscape() throws Exception {
+		
+		AtomicBoolean headersGood = new AtomicBoolean(false);
+		AtomicBoolean lineGood = new AtomicBoolean(false);
+		AtomicBoolean foundLine = new AtomicBoolean(false);
+		AtomicBoolean lineError = new AtomicBoolean(false);
+		// The default mapper skips comment lines
+		CsvMapper mapper = CSVStream.defaultMapper();
+		CsvSchema schema = CsvSchema.builder().setQuoteChar('\'').setEscapeChar('\\').setColumnSeparator('\t').build();
+		CSVStream.parse(new StringReader("'Test\\\"\nHeader1'\tTestHeader2\n'Test\\\"Value1'\tTestValue2"), h -> {
+			if (h.size() == 2 && h.contains("Test\"\nHeader1") && h.contains("TestHeader2")) {
+				headersGood.set(true);
+			}
+		}, (h, l) -> {
+			if (foundLine.compareAndSet(false, true) && l.size() == 2 && l.contains("Test\"Value1") && l.contains("TestValue2")) {
+				lineGood.set(true);
+			} else {
+				lineError.set(true);
+			}
+			return l;
+		}, l -> {
+		}, null, 1, mapper, schema);
+
+		assertTrue("Headers were not recognised", headersGood.get());
+		assertTrue("Line was not recognised", lineGood.get());
+		assertTrue("Line was not found", foundLine.get());
+		assertFalse("Too many lines", lineError.get());
+	}
+
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.Reader, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer, List, int)}
+	 * .
+	 */
+	@Test
+	public final void testStreamTSVNoQuoteOrEscape() throws Exception {
+		
+		AtomicBoolean headersGood = new AtomicBoolean(false);
+		AtomicBoolean lineGood = new AtomicBoolean(false);
+		AtomicBoolean foundLine = new AtomicBoolean(false);
+		AtomicBoolean lineError = new AtomicBoolean(false);
+		// The default mapper skips comment lines
+		CsvMapper mapper = CSVStream.defaultMapper();
+		CsvSchema schema = CsvSchema.builder().disableQuoteChar().disableEscapeChar().setColumnSeparator('\t').build();
+		CSVStream.parse(new StringReader("'Test\\\"Header1'\tTestHeader2\n'Test\\\"Value1'\tTestValue2"), h -> {
+			if (h.size() == 2 && h.contains("'Test\\\"Header1'") && h.contains("TestHeader2")) {
+				headersGood.set(true);
+			}
+		}, (h, l) -> {
+			if (foundLine.compareAndSet(false, true) && l.size() == 2 && l.contains("'Test\\\"Value1'") && l.contains("TestValue2")) {
+				lineGood.set(true);
+			} else {
+				lineError.set(true);
+			}
+			return l;
+		}, l -> {
+		}, null, 1, mapper, schema);
+
+		assertTrue("Headers were not recognised", headersGood.get());
+		assertTrue("Line was not recognised", lineGood.get());
+		assertTrue("Line was not found", foundLine.get());
+		assertFalse("Too many lines", lineError.get());
+	}
+
 }
