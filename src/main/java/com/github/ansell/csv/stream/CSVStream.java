@@ -279,7 +279,7 @@ public final class CSVStream {
 				} else if (lineCount >= headerLineCount) {
 					if (nextLine.size() != headers.size()) {
 						throw new CSVStreamException(
-								"Line and header sizes were different: " + headers + " " + nextLine);
+								"Line and header sizes were different: expected " + headers.size() + ", found " + nextLine.size() + " headers=" + headers + " line=" + nextLine);
 					}
 
 					final T apply = lineConverter.apply(headers, nextLine);
