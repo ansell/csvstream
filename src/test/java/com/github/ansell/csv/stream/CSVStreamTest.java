@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 import org.junit.Rule;
@@ -422,7 +423,7 @@ public class CSVStreamTest {
 	public final void testStreamCSVFailSubstitutedHeaderValidation() throws Exception {
 		thrown.expect(CSVStreamException.class);
 		thrown.expectMessage("Could not verify substituted headers for csv file");
-		CSVStream.parse(new StringReader("TestHeaderWhichShouldNotBeSeen"), h -> { 
+		CSVStream.parse(new StringReader("TestHeaderWhichShouldNotBeSeen"), h -> {
 			throw new RuntimeException("Testing failure of validation for substituted headers: " + h.toString());
 		}, (h, l) -> l, l -> {
 		}, Arrays.asList("TestSubstitutedHeader"), 0);
@@ -437,7 +438,7 @@ public class CSVStreamTest {
 	public final void testStreamCSVFailSubstitutedHeaderValidationOther() throws Exception {
 		thrown.expect(CSVStreamException.class);
 		thrown.expectMessage("Could not verify substituted headers for csv file");
-		CSVStream.parse(new StringReader("TestHeaderWhichShouldNotBeSeen"), h -> { 
+		CSVStream.parse(new StringReader("TestHeaderWhichShouldNotBeSeen"), h -> {
 			throw new RuntimeException("Testing failure of validation for substituted headers: " + h.toString());
 		}, (h, l) -> l, l -> {
 		}, Arrays.asList("TestSubstitutedHeader"), 1);
@@ -450,7 +451,7 @@ public class CSVStreamTest {
 	 */
 	@Test
 	public final void testStreamCSVZeroHeadersWithSubstitutesValid() throws Exception {
-		
+
 		AtomicBoolean headersGood = new AtomicBoolean(false);
 		AtomicBoolean lineGood = new AtomicBoolean(false);
 		CSVStream.parse(new StringReader("TestValue1"), h -> {
@@ -475,8 +476,73 @@ public class CSVStreamTest {
 	 * .
 	 */
 	@Test
+	public final void testStreamCSVZeroHeadersWithSubstitutesAndDefaultValuesValid() throws Exception {
+
+		AtomicBoolean headersGood = new AtomicBoolean(false);
+		AtomicBoolean normalLineGood = new AtomicBoolean(false);
+		AtomicBoolean defaultLineGood = new AtomicBoolean(false);
+		AtomicInteger lineCount = new AtomicInteger(0);
+		CSVStream.parse(new StringReader("TestNormal\n\"\""), h -> {
+			if (h.size() == 1 && h.contains("TestHeader1")) {
+				headersGood.set(true);
+			}
+		}, (h, l) -> {
+			if (l.size() == 1 && l.contains("TestValue1")) {
+				defaultLineGood.set(true);
+			}
+			if (l.size() == 1 && l.contains("TestNormal")) {
+				normalLineGood.set(true);
+			}
+			return l;
+		}, l -> {
+			lineCount.incrementAndGet();
+		}, Arrays.asList("TestHeader1"), Arrays.asList("TestValue1"), 0, CSVStream.defaultMapper(),
+				CSVStream.defaultSchema());
+
+		assertTrue("Headers were not recognised", headersGood.get());
+		assertTrue("Non-default line was not recognised", normalLineGood.get());
+		assertTrue("Default line was not recognised", defaultLineGood.get());
+		assertEquals("Did not receive expected number of lines", 2, lineCount.get());
+	}
+
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.Reader, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer, List, int)}
+	 * .
+	 */
+	@Test
+	public final void testStreamCSVWithDefaultValuesValid() throws Exception {
+
+		AtomicBoolean headersGood = new AtomicBoolean(false);
+		AtomicBoolean lineGood = new AtomicBoolean(false);
+		AtomicInteger lineCount = new AtomicInteger(0);
+		CSVStream.parse(new StringReader("TestHeader1\n\"\""), h -> {
+			if (h.size() == 1 && h.contains("TestHeader1")) {
+				headersGood.set(true);
+			}
+		}, (h, l) -> {
+			if (l.size() == 1 && l.contains("TestValue1")) {
+				lineGood.set(true);
+			}
+			return l;
+		}, l -> {
+			lineCount.incrementAndGet();
+		}, null, Arrays.asList("TestValue1"), 1, CSVStream.defaultMapper(),
+				CSVStream.defaultSchema());
+
+		assertTrue("Headers were not recognised", headersGood.get());
+		assertTrue("Line was not recognised", lineGood.get());
+		assertEquals("Did not receive expected number of lines", 1, lineCount.get());
+	}
+
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.Reader, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer, List, int)}
+	 * .
+	 */
+	@Test
 	public final void testStreamCSVZeroHeadersWithSubstitutesOverrideValid() throws Exception {
-		
+
 		AtomicBoolean headersGood = new AtomicBoolean(false);
 		AtomicBoolean lineGood = new AtomicBoolean(false);
 		AtomicBoolean foundLine = new AtomicBoolean(false);
@@ -508,24 +574,27 @@ public class CSVStreamTest {
 	 */
 	@Test
 	public final void testStreamCSVZeroHeadersWithSubstitutesOverridingMultipleValid() throws Exception {
-		
+
 		AtomicBoolean headersGood = new AtomicBoolean(false);
 		AtomicBoolean lineGood = new AtomicBoolean(false);
 		AtomicBoolean foundLine = new AtomicBoolean(false);
 		AtomicBoolean lineError = new AtomicBoolean(false);
-		CSVStream.parse(new StringReader("TestShouldNotSeeThisHeader1\nTestShouldDefinitelyNotSeeThisHeader2\nYetAnotherHiddenHeader3\nTestValue1"), h -> {
-			if (h.size() == 1 && h.contains("TestHeader1")) {
-				headersGood.set(true);
-			}
-		}, (h, l) -> {
-			if (foundLine.compareAndSet(false, true) && l.size() == 1 && l.contains("TestValue1")) {
-				lineGood.set(true);
-			} else {
-				lineError.set(true);
-			}
-			return l;
-		}, l -> {
-		}, Arrays.asList("TestHeader1"), 3);
+		CSVStream.parse(
+				new StringReader(
+						"TestShouldNotSeeThisHeader1\nTestShouldDefinitelyNotSeeThisHeader2\nYetAnotherHiddenHeader3\nTestValue1"),
+				h -> {
+					if (h.size() == 1 && h.contains("TestHeader1")) {
+						headersGood.set(true);
+					}
+				}, (h, l) -> {
+					if (foundLine.compareAndSet(false, true) && l.size() == 1 && l.contains("TestValue1")) {
+						lineGood.set(true);
+					} else {
+						lineError.set(true);
+					}
+					return l;
+				}, l -> {
+				}, Arrays.asList("TestHeader1"), 3);
 
 		assertTrue("Headers were not recognised", headersGood.get());
 		assertTrue("Line was not recognised", lineGood.get());
@@ -540,24 +609,27 @@ public class CSVStreamTest {
 	 */
 	@Test
 	public final void testStreamCSVThreeHeadersNoSubstitutes() throws Exception {
-		
+
 		AtomicBoolean headersGood = new AtomicBoolean(false);
 		AtomicBoolean lineGood = new AtomicBoolean(false);
 		AtomicBoolean foundLine = new AtomicBoolean(false);
 		AtomicBoolean lineError = new AtomicBoolean(false);
-		CSVStream.parse(new StringReader("TestHeader1\nTestShouldDefinitelyNotSeeThisHeader2\nYetAnotherHiddenHeader3\nTestValue1"), h -> {
-			if (h.size() == 1 && h.contains("TestHeader1")) {
-				headersGood.set(true);
-			}
-		}, (h, l) -> {
-			if (foundLine.compareAndSet(false, true) && l.size() == 1 && l.contains("TestValue1")) {
-				lineGood.set(true);
-			} else {
-				lineError.set(true);
-			}
-			return l;
-		}, l -> {
-		}, null, 3);
+		CSVStream.parse(
+				new StringReader(
+						"TestHeader1\nTestShouldDefinitelyNotSeeThisHeader2\nYetAnotherHiddenHeader3\nTestValue1"),
+				h -> {
+					if (h.size() == 1 && h.contains("TestHeader1")) {
+						headersGood.set(true);
+					}
+				}, (h, l) -> {
+					if (foundLine.compareAndSet(false, true) && l.size() == 1 && l.contains("TestValue1")) {
+						lineGood.set(true);
+					} else {
+						lineError.set(true);
+					}
+					return l;
+				}, l -> {
+				}, null, 3);
 
 		assertTrue("Headers were not recognised", headersGood.get());
 		assertTrue("Line was not recognised", lineGood.get());
@@ -572,7 +644,7 @@ public class CSVStreamTest {
 	 */
 	@Test
 	public final void testStreamCSVUnescapedNewLineRFC4180() throws Exception {
-		
+
 		AtomicBoolean headersGood = new AtomicBoolean(false);
 		AtomicBoolean lineGood = new AtomicBoolean(false);
 		AtomicBoolean foundLine = new AtomicBoolean(false);
@@ -604,7 +676,7 @@ public class CSVStreamTest {
 	 */
 	@Test
 	public final void testStreamCSVUnescapedNewLineRFC4180Header() throws Exception {
-		
+
 		AtomicBoolean headersGood = new AtomicBoolean(false);
 		AtomicBoolean lineGood = new AtomicBoolean(false);
 		AtomicBoolean foundLine = new AtomicBoolean(false);
@@ -636,7 +708,7 @@ public class CSVStreamTest {
 	 */
 	@Test
 	public final void testStreamCSVCustomQuoteCharacter() throws Exception {
-		
+
 		AtomicBoolean headersGood = new AtomicBoolean(false);
 		AtomicBoolean lineGood = new AtomicBoolean(false);
 		AtomicBoolean foundLine = new AtomicBoolean(false);
@@ -670,7 +742,7 @@ public class CSVStreamTest {
 	 */
 	@Test
 	public final void testStreamCSVCustomQuoteCharacterInside() throws Exception {
-		
+
 		AtomicBoolean headersGood = new AtomicBoolean(false);
 		AtomicBoolean lineGood = new AtomicBoolean(false);
 		AtomicBoolean foundLine = new AtomicBoolean(false);
@@ -704,7 +776,7 @@ public class CSVStreamTest {
 	 */
 	@Test
 	public final void testStreamCSVComment() throws Exception {
-		
+
 		AtomicBoolean headersGood = new AtomicBoolean(false);
 		AtomicBoolean lineGood = new AtomicBoolean(false);
 		AtomicBoolean foundLine = new AtomicBoolean(false);
@@ -739,7 +811,7 @@ public class CSVStreamTest {
 	 */
 	@Test
 	public final void testStreamCSVQuoteAndEscapeChanged() throws Exception {
-		
+
 		AtomicBoolean headersGood = new AtomicBoolean(false);
 		AtomicBoolean lineGood = new AtomicBoolean(false);
 		AtomicBoolean foundLine = new AtomicBoolean(false);
@@ -774,7 +846,7 @@ public class CSVStreamTest {
 	 */
 	@Test
 	public final void testStreamCSVQuoteAndEscapeChangedDifferent() throws Exception {
-		
+
 		AtomicBoolean headersGood = new AtomicBoolean(false);
 		AtomicBoolean lineGood = new AtomicBoolean(false);
 		AtomicBoolean foundLine = new AtomicBoolean(false);
@@ -809,7 +881,7 @@ public class CSVStreamTest {
 	 */
 	@Test
 	public final void testStreamTSVWithQuoteAndEscape() throws Exception {
-		
+
 		AtomicBoolean headersGood = new AtomicBoolean(false);
 		AtomicBoolean lineGood = new AtomicBoolean(false);
 		AtomicBoolean foundLine = new AtomicBoolean(false);
@@ -822,7 +894,8 @@ public class CSVStreamTest {
 				headersGood.set(true);
 			}
 		}, (h, l) -> {
-			if (foundLine.compareAndSet(false, true) && l.size() == 2 && l.contains("Test\"Value1") && l.contains("TestValue2")) {
+			if (foundLine.compareAndSet(false, true) && l.size() == 2 && l.contains("Test\"Value1")
+					&& l.contains("TestValue2")) {
 				lineGood.set(true);
 			} else {
 				lineError.set(true);
@@ -844,7 +917,7 @@ public class CSVStreamTest {
 	 */
 	@Test
 	public final void testStreamTSVNoQuoteOrEscape() throws Exception {
-		
+
 		AtomicBoolean headersGood = new AtomicBoolean(false);
 		AtomicBoolean lineGood = new AtomicBoolean(false);
 		AtomicBoolean foundLine = new AtomicBoolean(false);
@@ -857,7 +930,8 @@ public class CSVStreamTest {
 				headersGood.set(true);
 			}
 		}, (h, l) -> {
-			if (foundLine.compareAndSet(false, true) && l.size() == 2 && l.contains("'Test\\\"Value1'") && l.contains("TestValue2")) {
+			if (foundLine.compareAndSet(false, true) && l.size() == 2 && l.contains("'Test\\\"Value1'")
+					&& l.contains("TestValue2")) {
 				lineGood.set(true);
 			} else {
 				lineError.set(true);
