@@ -11,7 +11,7 @@
 
 	<groupId>com.github.ansell.csv</groupId>
 	<artifactId>csvstream</artifactId>
-	<version>0.0.4-SNAPSHOT</version>
+	<version>0.0.4</version>
 	<name>CSVStream</name>
 	<description>CSV Stream processing library</description>
 	<packaging>jar</packaging>
