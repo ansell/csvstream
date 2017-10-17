@@ -6,6 +6,10 @@ Java-8 based CSV streaming, based on the Jackson CSV parser.
 
 # Changelog
 
+## 1017-10-17
+* Release 0.0.4
+* Add support for default value interpolation
+
 ## 2017-03-30
 * Add support for overriding headers and specifying the number of header lines (including 0) to expect before emitting lines
 
