@@ -340,11 +340,11 @@ public final class CSVStream {
 		try (final MappingIterator<List<String>> it = mapper.readerFor(List.class).with(schema).readValues(reader);) {
 			while (it.hasNext()) {
 				List<String> nextLine = it.next();
-				System.out.println("CSVStream.parse: nextLine.size()=" + nextLine.size());
-				System.out.println("CSVStream.parse: nextLine=" + nextLine);
-				System.out.println("CSVStream.parse: schema.getColumnSeparator()=" + schema.getColumnSeparator());
-				System.out.println(
-						"CSVStream.parse: (int)schema.getColumnSeparator()=" + (int) schema.getColumnSeparator());
+				//System.out.println("CSVStream.parse: nextLine.size()=" + nextLine.size());
+				//System.out.println("CSVStream.parse: nextLine=" + nextLine);
+				//System.out.println("CSVStream.parse: schema.getColumnSeparator()=" + schema.getColumnSeparator());
+				//System.out.println(
+				//		"CSVStream.parse: (int)schema.getColumnSeparator()=" + (int) schema.getColumnSeparator());
 				if (headers == null) {
 					headers = nextLine.stream().map(v -> v.trim()).map(v -> v.intern()).collect(Collectors.toList());
 					try {
@@ -376,8 +376,8 @@ public final class CSVStream {
 						resultConsumer.accept(apply);
 					}
 				} else {
-					System.out.println("CSVStream.parse: skipping header line number " + (lineCount + 1) + " out of "
-							+ headerLineCount + " : " + nextLine);
+					//System.out.println("CSVStream.parse: skipping header line number " + (lineCount + 1) + " out of "
+					//		+ headerLineCount + " : " + nextLine);
 				}
 				lineCount++;
 			}
