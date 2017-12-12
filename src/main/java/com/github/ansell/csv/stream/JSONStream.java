@@ -299,7 +299,13 @@ public final class JSONStream {
 		}
 
 		List<JsonPointer> fieldRelativePointers = new ArrayList<>(headers.size());
-
+		for(final String nextHeader : headers) {
+			if(!fieldRelativePaths.containsKey(nextHeader)) {
+				throw new CSVStreamException("No path mapping found for header: "+ nextHeader);
+			}
+			fieldRelativePointers.add(fieldRelativePaths.get(nextHeader));
+		}
+		
 		final Function<List<String>, List<String>> defaultValueReplacer;
 		// Trivial non-replacer if there were no default values set
 		if (defaultValues.isEmpty()) {
