@@ -25,17 +25,10 @@
  */
 package com.github.ansell.csv.stream;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.Reader;
-import java.io.Writer;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -43,20 +36,11 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonPointer;
-import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SequenceWriter;
-import com.fasterxml.jackson.dataformat.csv.CsvMapper;
-import com.fasterxml.jackson.dataformat.csv.CsvParser;
-import com.fasterxml.jackson.dataformat.csv.CsvSchema;
-import com.fasterxml.jackson.dataformat.csv.CsvSchema.ColumnType;
 
 /**
  * Implements streaming of JSON files for parsing using Java-8 Lambda functions
@@ -66,153 +50,10 @@ import com.fasterxml.jackson.dataformat.csv.CsvSchema.ColumnType;
  */
 public final class JSONStream {
 
-	public static final int DEFAULT_HEADER_COUNT = 1;
-
 	/**
 	 * Private constructor for static only class
 	 */
 	private JSONStream() {
-	}
-
-	/**
-	 * Stream a JSON file from the given InputStream through the header validator,
-	 * line checker, and if the line checker succeeds, send the checked/converted
-	 * line to the consumer.
-	 * 
-	 * @param inputStream
-	 *            The {@link InputStream} containing the JSON file.
-	 * @param headersValidator
-	 *            The validator of the header line. Throwing
-	 *            IllegalArgumentException or other RuntimeExceptions causes the
-	 *            parsing process to short-circuit after parsing the header line,
-	 *            with a CSVStreamException being rethrown by this code.
-	 * @param lineConverter
-	 *            The validator and converter of lines, based on the header line. If
-	 *            the lineChecker returns null, the line will not be passed to the
-	 *            writer.
-	 * @param resultConsumer
-	 *            The consumer of the checked lines.
-	 * @param <T>
-	 *            The type of the results that will be created by the lineChecker
-	 *            and pushed into the writer {@link Consumer}.
-	 * @throws IOException
-	 *             If an error occurred accessing the input.
-	 * @throws CSVStreamException
-	 *             If an error occurred validating the input.
-	 */
-	public static <T> void parse(final InputStream inputStream, final Consumer<List<String>> headersValidator,
-			final BiFunction<List<String>, List<String>, T> lineConverter, final Consumer<T> resultConsumer)
-			throws IOException, CSVStreamException {
-		try (final Reader inputStreamReader = new BufferedReader(
-				new InputStreamReader(inputStream, StandardCharsets.UTF_8));) {
-			parse(inputStreamReader, headersValidator, lineConverter, resultConsumer);
-		}
-	}
-
-	/**
-	 * Stream a CSV file from the given Reader through the header validator, line
-	 * checker, and if the line checker succeeds, send the checked/converted line to
-	 * the consumer.
-	 * 
-	 * @param reader
-	 *            The {@link Reader} containing the CSV file.
-	 * @param headersValidator
-	 *            The validator of the header line. Throwing
-	 *            IllegalArgumentException or other RuntimeExceptions causes the
-	 *            parsing process to short-circuit after parsing the header line,
-	 *            with a CSVStreamException being rethrown by this code.
-	 * @param lineConverter
-	 *            The validator and converter of lines, based on the header line. If
-	 *            the lineChecker returns null, the line will not be passed to the
-	 *            writer.
-	 * @param resultConsumer
-	 *            The consumer of the checked lines.
-	 * @param <T>
-	 *            The type of the results that will be created by the lineChecker
-	 *            and pushed into the writer {@link Consumer}.
-	 * @throws IOException
-	 *             If an error occurred accessing the input.
-	 * @throws CSVStreamException
-	 *             If an error occurred validating the input.
-	 */
-	public static <T> void parse(final Reader reader, final Consumer<List<String>> headersValidator,
-			final BiFunction<List<String>, List<String>, T> lineConverter, final Consumer<T> resultConsumer)
-			throws IOException, CSVStreamException {
-		parse(reader, headersValidator, lineConverter, resultConsumer, null);
-	}
-
-	/**
-	 * Stream a CSV file from the given Reader through the header validator, line
-	 * checker, and if the line checker succeeds, send the checked/converted line to
-	 * the consumer.
-	 * 
-	 * @param reader
-	 *            The {@link Reader} containing the CSV file.
-	 * @param headersValidator
-	 *            The validator of the header line. Throwing
-	 *            IllegalArgumentException or other RuntimeExceptions causes the
-	 *            parsing process to short-circuit after parsing the header line,
-	 *            with a CSVStreamException being rethrown by this code.
-	 * @param lineConverter
-	 *            The validator and converter of lines, based on the header line. If
-	 *            the lineChecker returns null, the line will not be passed to the
-	 *            writer.
-	 * @param resultConsumer
-	 *            The consumer of the checked lines.
-	 * @param substituteHeaders
-	 *            A substitute set of headers or null to use the headers from the
-	 *            file. If this is null the first line of the file will be used.
-	 * @param <T>
-	 *            The type of the results that will be created by the lineChecker
-	 *            and pushed into the writer {@link Consumer}.
-	 * @throws IOException
-	 *             If an error occurred accessing the input.
-	 * @throws CSVStreamException
-	 *             If an error occurred validating the input.
-	 */
-	public static <T> void parse(final Reader reader, final Consumer<List<String>> headersValidator,
-			final BiFunction<List<String>, List<String>, T> lineConverter, final Consumer<T> resultConsumer,
-			final List<String> substituteHeaders) throws IOException, CSVStreamException {
-		parse(reader, headersValidator, lineConverter, resultConsumer, substituteHeaders, DEFAULT_HEADER_COUNT);
-	}
-
-	/**
-	 * Stream a CSV file from the given Reader through the header validator, line
-	 * checker, and if the line checker succeeds, send the checked/converted line to
-	 * the consumer.
-	 * 
-	 * @param reader
-	 *            The {@link Reader} containing the CSV file.
-	 * @param headersValidator
-	 *            The validator of the header line. Throwing
-	 *            IllegalArgumentException or other RuntimeExceptions causes the
-	 *            parsing process to short-circuit after parsing the header line,
-	 *            with a CSVStreamException being rethrown by this code.
-	 * @param lineConverter
-	 *            The validator and converter of lines, based on the header line. If
-	 *            the lineChecker returns null, the line will not be passed to the
-	 *            writer.
-	 * @param resultConsumer
-	 *            The consumer of the checked lines.
-	 * @param substituteHeaders
-	 *            A substitute set of headers or null to use the headers from the
-	 *            file. If this is null and headerLineCount is set to 0, an
-	 *            IllegalArgumentException ill be thrown.
-	 * @param headerLineCount
-	 *            The number of header lines to expect
-	 * @param <T>
-	 *            The type of the results that will be created by the lineChecker
-	 *            and pushed into the writer {@link Consumer}.
-	 * @throws IOException
-	 *             If an error occurred accessing the input.
-	 * @throws CSVStreamException
-	 *             If an error occurred validating the input.
-	 */
-	public static <T> void parse(final Reader reader, final Consumer<List<String>> headersValidator,
-			final BiFunction<List<String>, List<String>, T> lineConverter, final Consumer<T> resultConsumer,
-			final List<String> substituteHeaders, int headerLineCount) throws IOException, CSVStreamException {
-		parse(reader, headersValidator, lineConverter, resultConsumer, substituteHeaders, Collections.emptyList(),
-				headerLineCount);
 	}
 
 	/**
@@ -255,57 +96,29 @@ public final class JSONStream {
 	 */
 	public static <T> void parse(final Reader reader, final Consumer<List<String>> headersValidator,
 			final BiFunction<List<String>, List<String>, T> lineConverter, final Consumer<T> resultConsumer,
-			final List<String> substituteHeaders, final List<String> defaultValues, int headerLineCount)
-			throws IOException, CSVStreamException {
-		if (headerLineCount < 0) {
-			throw new IllegalArgumentException("Header line count must be non-negative.");
-		}
+			final JsonPointer basePath, final Map<String, JsonPointer> fieldRelativePaths,
+			final Map<String, String> defaultValues) throws IOException, CSVStreamException {
 
-		if (headerLineCount < 1 && substituteHeaders == null) {
-			throw new IllegalArgumentException(
-					"If there are no header lines, a substitute set of headers must be defined.");
-		}
+		// JsonPointer basePath = JsonPointer.compile("/");
 
-		List<String> headers = substituteHeaders;
-		JsonPointer basePath = JsonPointer.compile("/");
-		Map<String, JsonPointer> fieldRelativePaths = new HashMap<>();
+		List<String> headers = fieldRelativePaths.keySet().stream().map(v -> v.trim()).map(v -> v.intern())
+				.collect(Collectors.toCollection(ArrayList::new));
+		Collections.sort(headers, String::compareTo);
 
-		if (headers == null) {
-			headers = fieldRelativePaths.keySet().stream().map(v -> v.trim()).map(v -> v.intern())
-					.collect(Collectors.toCollection(ArrayList::new));
-			Collections.sort(headers, String::compareTo);
-
-			if (!defaultValues.isEmpty()) {
-				System.err.println(
-						"Substitute headers were not set, but default values were. There is a risk that the default values may not be sorted in the same way as the output values.");
-			}
-		}
-
-		if (headers != null) {
-			try {
-				headersValidator.accept(headers);
-			} catch (final Exception e) {
-				throw new CSVStreamException("Could not verify substituted headers for csv file", e);
-			}
-		}
-
-		// Default values must either be empty or the exact length
-		// that the headers (possibly substituteHeaders) were
-		if (!defaultValues.isEmpty() && headers.size() != defaultValues.size()) {
-			throw new CSVStreamException(
-					"Default values list must have the same number of items as the headers: expected " + headers.size()
-							+ ", found " + defaultValues.size() + " headers=" + headers + " defaultValues="
-							+ defaultValues);
+		try {
+			headersValidator.accept(headers);
+		} catch (final Exception e) {
+			throw new CSVStreamException("Could not verify substituted headers for csv file", e);
 		}
 
 		List<JsonPointer> fieldRelativePointers = new ArrayList<>(headers.size());
-		for(final String nextHeader : headers) {
-			if(!fieldRelativePaths.containsKey(nextHeader)) {
-				throw new CSVStreamException("No path mapping found for header: "+ nextHeader);
+		for (final String nextHeader : headers) {
+			if (!fieldRelativePaths.containsKey(nextHeader)) {
+				throw new CSVStreamException("No path mapping found for header: " + nextHeader);
 			}
 			fieldRelativePointers.add(fieldRelativePaths.get(nextHeader));
 		}
-		
+
 		final Function<List<String>, List<String>> defaultValueReplacer;
 		// Trivial non-replacer if there were no default values set
 		if (defaultValues.isEmpty()) {
