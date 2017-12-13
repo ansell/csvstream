@@ -93,10 +93,10 @@ public final class JSONStream {
 			final JsonPointer basePath, final Map<String, JsonPointer> fieldRelativePaths,
 			final Map<String, String> defaultValues) throws IOException, CSVStreamException {
 
-		if(fieldRelativePaths.isEmpty()) {
+		if (fieldRelativePaths.isEmpty()) {
 			throw new CSVStreamException("No field paths were set for JSONStream.parse");
 		}
-		
+
 		// JsonPointer basePath = JsonPointer.compile("/");
 
 		List<String> headers = fieldRelativePaths.keySet().stream().map(v -> v.trim()).map(v -> v.intern())
@@ -144,66 +144,43 @@ public final class JSONStream {
 
 		ObjectMapper mapper = new ObjectMapper();
 
-		// Don't think it is necessary to include the parent, and likely more intuitive not to given they have already selected that path
-	    boolean includeParent = false;
-	    try (JsonParser baseParser = mapper.getFactory().createParser(reader);
-			JsonParser filteredParser = new FilteringParserDelegate(baseParser,
-	                new JsonPointerBasedFilter(basePath),
-	                includeParent , false);) {
-			//try (JsonParser parser = mapper.getFactory().createParser(reader);) {
-			//JsonNode baseNode = mapper.reader().at(basePath).readTree(parser);
-			//JsonNode baseNode = mapper.reader().at(basePath).readTree(reader);
-			
+		// Don't think it is necessary to include the parent, and likely more intuitive
+		// not to given they have already selected that path
+		boolean includeParent = false;
+		try (JsonParser baseParser = mapper.getFactory().createParser(reader);
+				JsonParser filteredParser = new FilteringParserDelegate(baseParser,
+						new JsonPointerBasedFilter(basePath), includeParent, false);) {
+			// try (JsonParser parser = mapper.getFactory().createParser(reader);) {
+			// JsonNode baseNode = mapper.reader().at(basePath).readTree(parser);
+			// JsonNode baseNode = mapper.reader().at(basePath).readTree(reader);
+
+			// TODO: Replace this with a streaming check and only do this if it is a
+			// START_OBJECT token, otherwise move into the array and only read tree's out
+			// one by one for each element
 			JsonNode baseNode = filteredParser.readValueAsTree();
 
-			if(baseNode == null) {
+			if (baseNode == null) {
 				throw new CSVStreamException("Path did not match anything: path='" + basePath.toString() + "'");
 			}
-			
-			if (!baseNode.isArray()) {
-				System.out.println(JSONStreamUtil.toPrettyPrint(baseNode));
-				throw new CSVStreamException("Currently only support base JSONPath's pointing to arrays: was "
-						+ baseNode.getNodeType() + " (path='" + basePath.toString() + "')");
-			}
 
-			Iterator<JsonNode> elementIterator = baseNode.elements();
-			while (elementIterator.hasNext()) {
-				JsonNode nextNode = elementIterator.next();
-				List<String> nextLine = new ArrayList<>(fieldRelativePaths.size());
-				initialiseResult(nextLine, fieldRelativePaths.size());
-				for (int i = 0; i < fieldRelativePointers.size(); i++) {
-					JsonPointer nextField = fieldRelativePointers.get(i);
-					// read everything from this START_OBJECT to the matching END_OBJECT
-					// and return it as a tree model ObjectNode
-					JsonNode node = nextNode.at(nextField);
-					if (!node.isValueNode()) {
-						throw new CSVStreamException("Field relative pointers must point to value nodes: instead found "
-								+ nextField.toString() + " after setting base to " + basePath.toString());
-					}
-					nextLine.set(i, node.asText());
+			// If the path points to an array, we iterate over the elements, otherwise
+			// process the node as a whole
+			if (baseNode.isArray()) {
+				Iterator<JsonNode> elementIterator = baseNode.elements();
+				while (elementIterator.hasNext()) {
+					JsonNode nextNode = elementIterator.next();
+					convertNodeToResult(lineConverter, resultConsumer, basePath, fieldRelativePaths, headers,
+							fieldRelativePointers, defaultValueReplacer, nextNode);
+					lineCount++;
 				}
-				// System.out.println("CSVStream.parse: nextLine.size()=" + nextLine.size());
-				// System.out.println("CSVStream.parse: nextLine=" + nextLine);
-				// System.out.println("CSVStream.parse: schema.getColumnSeparator()=" +
-				// schema.getColumnSeparator());
-				// System.out.println(
-				// "CSVStream.parse: (int)schema.getColumnSeparator()=" + (int)
-				// schema.getColumnSeparator());
-				if (nextLine.size() != headers.size()) {
-					throw new CSVStreamException("Line and header sizes were different: expected " + headers.size()
-							+ ", found " + nextLine.size() + " headers=" + headers + " line=" + nextLine);
-				}
-
-				final List<String> defaultReplacedLine = defaultValueReplacer.apply(nextLine);
-
-				final T apply = lineConverter.apply(headers, defaultReplacedLine);
-
-				// Line checker returning null indicates that a value was
-				// not found, and will not be sent to the consumer.
-				if (apply != null) {
-					resultConsumer.accept(apply);
-				}
+			} else if (baseNode.isObject()) {
+				convertNodeToResult(lineConverter, resultConsumer, basePath, fieldRelativePaths, headers,
+						fieldRelativePointers, defaultValueReplacer, baseNode);
 				lineCount++;
+			} else {
+				throw new CSVStreamException(
+						"Base JSONPointer must point to either an Array or an Object: instead found "
+								+ mapper.writeValueAsString(baseNode));
 			}
 		} catch (IOException | CSVStreamException e) {
 			throw e;
@@ -212,8 +189,49 @@ public final class JSONStream {
 		}
 	}
 
+	public static <T> void convertNodeToResult(final BiFunction<List<String>, List<String>, T> lineConverter,
+			final Consumer<T> resultConsumer, final JsonPointer basePath,
+			final Map<String, JsonPointer> fieldRelativePaths, List<String> headers,
+			List<JsonPointer> fieldRelativePointers, final Function<List<String>, List<String>> defaultValueReplacer,
+			JsonNode nextNode) {
+		List<String> nextLine = new ArrayList<>(fieldRelativePaths.size());
+		initialiseResult(nextLine, fieldRelativePaths.size());
+		for (int i = 0; i < fieldRelativePointers.size(); i++) {
+			JsonPointer nextField = fieldRelativePointers.get(i);
+			// read everything from this START_OBJECT to the matching END_OBJECT
+			// and return it as a tree model ObjectNode
+			JsonNode node = nextNode.at(nextField);
+			if (!node.isValueNode()) {
+				throw new CSVStreamException("Field relative pointers must point to value nodes: instead found "
+						+ nextField.toString() + " after setting base to " + basePath.toString());
+			}
+			nextLine.set(i, node.asText());
+		}
+		// System.out.println("CSVStream.parse: nextLine.size()=" + nextLine.size());
+		// System.out.println("CSVStream.parse: nextLine=" + nextLine);
+		// System.out.println("CSVStream.parse: schema.getColumnSeparator()=" +
+		// schema.getColumnSeparator());
+		// System.out.println(
+		// "CSVStream.parse: (int)schema.getColumnSeparator()=" + (int)
+		// schema.getColumnSeparator());
+		if (nextLine.size() != headers.size()) {
+			throw new CSVStreamException("Line and header sizes were different: expected " + headers.size() + ", found "
+					+ nextLine.size() + " headers=" + headers + " line=" + nextLine);
+		}
+
+		final List<String> defaultReplacedLine = defaultValueReplacer.apply(nextLine);
+
+		final T apply = lineConverter.apply(headers, defaultReplacedLine);
+
+		// Line checker returning null indicates that a value was
+		// not found, and will not be sent to the consumer.
+		if (apply != null) {
+			resultConsumer.accept(apply);
+		}
+	}
+
 	private static void initialiseResult(List<String> nextLine, int size) {
-		for(int i = 0; i < size; i++) {
+		for (int i = 0; i < size; i++) {
 			nextLine.add("");
 		}
 	}
