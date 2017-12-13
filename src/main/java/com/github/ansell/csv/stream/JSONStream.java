@@ -93,6 +93,10 @@ public final class JSONStream {
 			final JsonPointer basePath, final Map<String, JsonPointer> fieldRelativePaths,
 			final Map<String, String> defaultValues) throws IOException, CSVStreamException {
 
+		if(fieldRelativePaths.isEmpty()) {
+			throw new CSVStreamException("No field paths were set for JSONStream.parse");
+		}
+		
 		// JsonPointer basePath = JsonPointer.compile("/");
 
 		List<String> headers = fieldRelativePaths.keySet().stream().map(v -> v.trim()).map(v -> v.intern())
@@ -140,16 +144,16 @@ public final class JSONStream {
 
 		ObjectMapper mapper = new ObjectMapper();
 
-	try {
 		// Don't think it is necessary to include the parent, and likely more intuitive not to given they have already selected that path
-		    boolean includeParent = false;
+	    boolean includeParent = false;
+	    try (JsonParser baseParser = mapper.getFactory().createParser(reader);
+			JsonParser filteredParser = new FilteringParserDelegate(baseParser,
+	                new JsonPointerBasedFilter(basePath),
+	                includeParent , false);) {
 			//try (JsonParser parser = mapper.getFactory().createParser(reader);) {
 			//JsonNode baseNode = mapper.reader().at(basePath).readTree(parser);
 			//JsonNode baseNode = mapper.reader().at(basePath).readTree(reader);
-			JsonParser baseParser = mapper.getFactory().createParser(reader);
-			JsonParser filteredParser = new FilteringParserDelegate(baseParser,
-	                new JsonPointerBasedFilter(basePath),
-	                includeParent , false);
+			
 			JsonNode baseNode = filteredParser.readValueAsTree();
 
 			if(baseNode == null) {
@@ -166,6 +170,7 @@ public final class JSONStream {
 			while (elementIterator.hasNext()) {
 				JsonNode nextNode = elementIterator.next();
 				List<String> nextLine = new ArrayList<>(fieldRelativePaths.size());
+				initialiseResult(nextLine, fieldRelativePaths.size());
 				for (int i = 0; i < fieldRelativePointers.size(); i++) {
 					JsonPointer nextField = fieldRelativePointers.get(i);
 					// read everything from this START_OBJECT to the matching END_OBJECT
@@ -204,6 +209,12 @@ public final class JSONStream {
 			throw e;
 		} catch (Exception e) {
 			throw new CSVStreamException(e);
+		}
+	}
+
+	private static void initialiseResult(List<String> nextLine, int size) {
+		for(int i = 0; i < size; i++) {
+			nextLine.add("");
 		}
 	}
 

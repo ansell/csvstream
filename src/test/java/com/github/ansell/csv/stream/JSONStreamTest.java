@@ -86,9 +86,12 @@ public class JSONStreamTest {
 		
 		BiFunction<List<String>, List<String>, List<String>> lineConverter = (h, l) -> l;
 		Consumer<List<String>> resultConsumer = l -> {
+			System.out.println(l);
 		};
 		JsonPointer basePath = JsonPointer.compile("/base");
 		Map<String, JsonPointer> fieldRelativePaths = new HashMap<>();
+		fieldRelativePaths.put("name", JsonPointer.compile("/name"));
+		
 		Map<String, String> defaultValues = Collections.emptyMap();
 
 		System.out.println("JSONStreamUtil.queryJSON:");
