@@ -33,6 +33,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -84,13 +85,33 @@ public class JSONStreamTest {
 				"] }";
 		
 		
-		BiFunction<List<String>, List<String>, List<String>> lineConverter = (h, l) -> l;
+		BiFunction<List<String>, List<String>, List<String>> lineConverter = (h, l) -> {
+			System.out.println(h);
+			assertEquals(h.size(), 3);
+			assertEquals(l.size(), 3);
+			assertEquals("homePhone", h.get(0));
+			assertEquals("mobilePhone", h.get(1));
+			assertEquals("name", h.get(2));
+			return l;
+		};
 		Consumer<List<String>> resultConsumer = l -> {
 			System.out.println(l);
+			assertEquals(l.size(), 3);
+			if(l.get(2).equals("Alice")) {
+				assertEquals(l.get(0), "1234567890");
+				assertEquals(l.get(1), "0001112223");
+			} else if(l.get(2).equals("Bob")) {
+				assertEquals(l.get(0), "3456789012");
+				assertEquals(l.get(1), "4445556677");
+			} else {
+				fail("Found unrecognised name field value: " + l.get(2));
+			}
 		};
 		JsonPointer basePath = JsonPointer.compile("/base");
-		Map<String, JsonPointer> fieldRelativePaths = new HashMap<>();
+		Map<String, JsonPointer> fieldRelativePaths = new LinkedHashMap<>();
 		fieldRelativePaths.put("name", JsonPointer.compile("/name"));
+		fieldRelativePaths.put("homePhone", JsonPointer.compile("/phone/0/home"));
+		fieldRelativePaths.put("mobilePhone", JsonPointer.compile("/phone/0/mobile"));
 		
 		Map<String, String> defaultValues = Collections.emptyMap();
 
