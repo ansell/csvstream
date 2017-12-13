@@ -141,7 +141,8 @@ public final class JSONStream {
 		ObjectMapper mapper = new ObjectMapper();
 
 	try {
-		boolean includeParent = false;
+		// Don't think it is necessary to include the parent, and likely more intuitive not to given they have already selected that path
+		    boolean includeParent = false;
 			//try (JsonParser parser = mapper.getFactory().createParser(reader);) {
 			//JsonNode baseNode = mapper.reader().at(basePath).readTree(parser);
 			//JsonNode baseNode = mapper.reader().at(basePath).readTree(reader);
