@@ -39,6 +39,8 @@ import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonPointer;
+import com.fasterxml.jackson.core.filter.FilteringParserDelegate;
+import com.fasterxml.jackson.core.filter.JsonPointerBasedFilter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.ansell.csv.stream.util.JSONStreamUtil;
@@ -139,9 +141,15 @@ public final class JSONStream {
 		ObjectMapper mapper = new ObjectMapper();
 
 	try {
-		//try (JsonParser parser = mapper.getFactory().createParser(reader);) {
+		boolean includeParent = false;
+			//try (JsonParser parser = mapper.getFactory().createParser(reader);) {
 			//JsonNode baseNode = mapper.reader().at(basePath).readTree(parser);
-			JsonNode baseNode = mapper.reader().at(basePath).readTree(reader);
+			//JsonNode baseNode = mapper.reader().at(basePath).readTree(reader);
+			JsonParser baseParser = mapper.getFactory().createParser(reader);
+			JsonParser filteredParser = new FilteringParserDelegate(baseParser,
+	                new JsonPointerBasedFilter(basePath),
+	                includeParent , false);
+			JsonNode baseNode = filteredParser.readValueAsTree();
 
 			if(baseNode == null) {
 				throw new CSVStreamException("Path did not match anything: path='" + basePath.toString() + "'");
