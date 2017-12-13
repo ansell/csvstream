@@ -81,7 +81,11 @@ public final class JSONStream {
 	 * @param basePath
 	 *            The path to go to before checking the field paths (only supports a
 	 *            single point of entry at this point in time). Set to "/" to start
-	 *            at the top of the document.
+	 *            at the top of the document. If the basePath points to an array,
+	 *            each of the array elements are matched separately with the
+	 *            fieldRelativePaths. If it points to an object, the object is
+	 *            directly matched to obtain a single result row. Otherwise an
+	 *            exception is thrown.
 	 * @param fieldRelativePaths
 	 *            The relative paths underneath the basePath to select field values
 	 *            from.
@@ -154,16 +158,13 @@ public final class JSONStream {
 
 		ObjectMapper mapper = new ObjectMapper();
 
-		// Don't think it is necessary to include the parent, and likely more intuitive
-		// not to given they have already selected that path
+		// Parent must not be shown, so we can know whether it is an array or object
+		// after a single call to nextToken and to avoid encoding the last part of the
+		// base path into the fieldRelativePaths
 		boolean includeParent = false;
 		try (JsonParser baseParser = mapper.getFactory().createParser(reader);
 				JsonParser filteredParser = new FilteringParserDelegate(baseParser,
 						new JsonPointerBasedFilter(basePath), includeParent, false);) {
-			// try (JsonParser parser = mapper.getFactory().createParser(reader);) {
-			// JsonNode baseNode = mapper.reader().at(basePath).readTree(parser);
-			// JsonNode baseNode = mapper.reader().at(basePath).readTree(reader);
-
 			// Streaming check so that we don't attempt to parse entire large arrays as
 			// trees, rather we stream through the objects internally parsing each of the
 			// internal objects as separate trees
