@@ -138,9 +138,15 @@ public final class JSONStream {
 
 		ObjectMapper mapper = new ObjectMapper();
 
-		try (JsonParser parser = mapper.getFactory().createParser(reader);) {
-			JsonNode baseNode = mapper.reader().at(basePath).readTree(parser);
+	try {
+		//try (JsonParser parser = mapper.getFactory().createParser(reader);) {
+			//JsonNode baseNode = mapper.reader().at(basePath).readTree(parser);
+			JsonNode baseNode = mapper.reader().at(basePath).readTree(reader);
 
+			if(baseNode == null) {
+				throw new CSVStreamException("Path did not match anything: path='" + basePath.toString() + "'");
+			}
+			
 			if (!baseNode.isArray()) {
 				System.out.println(JSONStreamUtil.toPrettyPrint(baseNode));
 				throw new CSVStreamException("Currently only support base JSONPath's pointing to arrays: was "
