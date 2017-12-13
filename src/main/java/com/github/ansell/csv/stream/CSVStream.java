@@ -67,26 +67,26 @@ public final class CSVStream {
 	}
 
 	/**
-	 * Stream a CSV file from the given InputStream through the header
-	 * validator, line checker, and if the line checker succeeds, send the
-	 * checked/converted line to the consumer.
+	 * Stream a CSV file from the given InputStream through the header validator,
+	 * line checker, and if the line checker succeeds, send the checked/converted
+	 * line to the consumer.
 	 * 
 	 * @param inputStream
 	 *            The {@link InputStream} containing the CSV file.
 	 * @param headersValidator
 	 *            The validator of the header line. Throwing
 	 *            IllegalArgumentException or other RuntimeExceptions causes the
-	 *            parsing process to short-circuit after parsing the header
-	 *            line, with a CSVStreamException being rethrown by this code.
+	 *            parsing process to short-circuit after parsing the header line,
+	 *            with a CSVStreamException being rethrown by this code.
 	 * @param lineConverter
-	 *            The validator and converter of lines, based on the header
-	 *            line. If the lineChecker returns null, the line will not be
-	 *            passed to the writer.
+	 *            The validator and converter of lines, based on the header line. If
+	 *            the lineChecker returns null, the line will not be passed to the
+	 *            writer.
 	 * @param resultConsumer
 	 *            The consumer of the checked lines.
 	 * @param <T>
-	 *            The type of the results that will be created by the
-	 *            lineChecker and pushed into the writer {@link Consumer}.
+	 *            The type of the results that will be created by the lineChecker
+	 *            and pushed into the writer {@link Consumer}.
 	 * @throws IOException
 	 *             If an error occurred accessing the input.
 	 * @throws CSVStreamException
@@ -102,26 +102,26 @@ public final class CSVStream {
 	}
 
 	/**
-	 * Stream a CSV file from the given Reader through the header validator,
-	 * line checker, and if the line checker succeeds, send the
-	 * checked/converted line to the consumer.
+	 * Stream a CSV file from the given Reader through the header validator, line
+	 * checker, and if the line checker succeeds, send the checked/converted line to
+	 * the consumer.
 	 * 
 	 * @param reader
 	 *            The {@link Reader} containing the CSV file.
 	 * @param headersValidator
 	 *            The validator of the header line. Throwing
 	 *            IllegalArgumentException or other RuntimeExceptions causes the
-	 *            parsing process to short-circuit after parsing the header
-	 *            line, with a CSVStreamException being rethrown by this code.
+	 *            parsing process to short-circuit after parsing the header line,
+	 *            with a CSVStreamException being rethrown by this code.
 	 * @param lineConverter
-	 *            The validator and converter of lines, based on the header
-	 *            line. If the lineChecker returns null, the line will not be
-	 *            passed to the writer.
+	 *            The validator and converter of lines, based on the header line. If
+	 *            the lineChecker returns null, the line will not be passed to the
+	 *            writer.
 	 * @param resultConsumer
 	 *            The consumer of the checked lines.
 	 * @param <T>
-	 *            The type of the results that will be created by the
-	 *            lineChecker and pushed into the writer {@link Consumer}.
+	 *            The type of the results that will be created by the lineChecker
+	 *            and pushed into the writer {@link Consumer}.
 	 * @throws IOException
 	 *             If an error occurred accessing the input.
 	 * @throws CSVStreamException
@@ -134,30 +134,29 @@ public final class CSVStream {
 	}
 
 	/**
-	 * Stream a CSV file from the given Reader through the header validator,
-	 * line checker, and if the line checker succeeds, send the
-	 * checked/converted line to the consumer.
+	 * Stream a CSV file from the given Reader through the header validator, line
+	 * checker, and if the line checker succeeds, send the checked/converted line to
+	 * the consumer.
 	 * 
 	 * @param reader
 	 *            The {@link Reader} containing the CSV file.
 	 * @param headersValidator
 	 *            The validator of the header line. Throwing
 	 *            IllegalArgumentException or other RuntimeExceptions causes the
-	 *            parsing process to short-circuit after parsing the header
-	 *            line, with a CSVStreamException being rethrown by this code.
+	 *            parsing process to short-circuit after parsing the header line,
+	 *            with a CSVStreamException being rethrown by this code.
 	 * @param lineConverter
-	 *            The validator and converter of lines, based on the header
-	 *            line. If the lineChecker returns null, the line will not be
-	 *            passed to the writer.
+	 *            The validator and converter of lines, based on the header line. If
+	 *            the lineChecker returns null, the line will not be passed to the
+	 *            writer.
 	 * @param resultConsumer
 	 *            The consumer of the checked lines.
 	 * @param substituteHeaders
-	 *            A substitute set of headers or null to use the headers from
-	 *            the file. If this is null the first line of the file will be
-	 *            used.
+	 *            A substitute set of headers or null to use the headers from the
+	 *            file. If this is null the first line of the file will be used.
 	 * @param <T>
-	 *            The type of the results that will be created by the
-	 *            lineChecker and pushed into the writer {@link Consumer}.
+	 *            The type of the results that will be created by the lineChecker
+	 *            and pushed into the writer {@link Consumer}.
 	 * @throws IOException
 	 *             If an error occurred accessing the input.
 	 * @throws CSVStreamException
@@ -170,32 +169,32 @@ public final class CSVStream {
 	}
 
 	/**
-	 * Stream a CSV file from the given Reader through the header validator,
-	 * line checker, and if the line checker succeeds, send the
-	 * checked/converted line to the consumer.
+	 * Stream a CSV file from the given Reader through the header validator, line
+	 * checker, and if the line checker succeeds, send the checked/converted line to
+	 * the consumer.
 	 * 
 	 * @param reader
 	 *            The {@link Reader} containing the CSV file.
 	 * @param headersValidator
 	 *            The validator of the header line. Throwing
 	 *            IllegalArgumentException or other RuntimeExceptions causes the
-	 *            parsing process to short-circuit after parsing the header
-	 *            line, with a CSVStreamException being rethrown by this code.
+	 *            parsing process to short-circuit after parsing the header line,
+	 *            with a CSVStreamException being rethrown by this code.
 	 * @param lineConverter
-	 *            The validator and converter of lines, based on the header
-	 *            line. If the lineChecker returns null, the line will not be
-	 *            passed to the writer.
+	 *            The validator and converter of lines, based on the header line. If
+	 *            the lineChecker returns null, the line will not be passed to the
+	 *            writer.
 	 * @param resultConsumer
 	 *            The consumer of the checked lines.
 	 * @param substituteHeaders
-	 *            A substitute set of headers or null to use the headers from
-	 *            the file. If this is null and headerLineCount is set to 0, an
+	 *            A substitute set of headers or null to use the headers from the
+	 *            file. If this is null and headerLineCount is set to 0, an
 	 *            IllegalArgumentException ill be thrown.
 	 * @param headerLineCount
 	 *            The number of header lines to expect
 	 * @param <T>
-	 *            The type of the results that will be created by the
-	 *            lineChecker and pushed into the writer {@link Consumer}.
+	 *            The type of the results that will be created by the lineChecker
+	 *            and pushed into the writer {@link Consumer}.
 	 * @throws IOException
 	 *             If an error occurred accessing the input.
 	 * @throws CSVStreamException
@@ -212,32 +211,32 @@ public final class CSVStream {
 	}
 
 	/**
-	 * Stream a CSV file from the given Reader through the header validator,
-	 * line checker, and if the line checker succeeds, send the
-	 * checked/converted line to the consumer.
+	 * Stream a CSV file from the given Reader through the header validator, line
+	 * checker, and if the line checker succeeds, send the checked/converted line to
+	 * the consumer.
 	 * 
 	 * @param reader
 	 *            The {@link Reader} containing the CSV file.
 	 * @param headersValidator
 	 *            The validator of the header line. Throwing
 	 *            IllegalArgumentException or other RuntimeExceptions causes the
-	 *            parsing process to short-circuit after parsing the header
-	 *            line, with a CSVStreamException being rethrown by this code.
+	 *            parsing process to short-circuit after parsing the header line,
+	 *            with a CSVStreamException being rethrown by this code.
 	 * @param lineConverter
-	 *            The validator and converter of lines, based on the header
-	 *            line. If the lineChecker returns null, the line will not be
-	 *            passed to the writer.
+	 *            The validator and converter of lines, based on the header line. If
+	 *            the lineChecker returns null, the line will not be passed to the
+	 *            writer.
 	 * @param resultConsumer
 	 *            The consumer of the checked lines.
 	 * @param substituteHeaders
-	 *            A substitute set of headers or null to use the headers from
-	 *            the file. If this is null and headerLineCount is set to 0, an
+	 *            A substitute set of headers or null to use the headers from the
+	 *            file. If this is null and headerLineCount is set to 0, an
 	 *            IllegalArgumentException ill be thrown.
 	 * @param headerLineCount
 	 *            The number of header lines to expect
 	 * @param <T>
-	 *            The type of the results that will be created by the
-	 *            lineChecker and pushed into the writer {@link Consumer}.
+	 *            The type of the results that will be created by the lineChecker
+	 *            and pushed into the writer {@link Consumer}.
 	 * @throws IOException
 	 *             If an error occurred accessing the input.
 	 * @throws CSVStreamException
@@ -252,39 +251,39 @@ public final class CSVStream {
 	}
 
 	/**
-	 * Stream a CSV file from the given Reader through the header validator,
-	 * line checker, and if the line checker succeeds, send the
-	 * checked/converted line to the consumer.
+	 * Stream a CSV file from the given Reader through the header validator, line
+	 * checker, and if the line checker succeeds, send the checked/converted line to
+	 * the consumer.
 	 * 
 	 * @param reader
 	 *            The {@link Reader} containing the CSV file.
 	 * @param headersValidator
 	 *            The validator of the header line. Throwing
 	 *            IllegalArgumentException or other RuntimeExceptions causes the
-	 *            parsing process to short-circuit after parsing the header
-	 *            line, with a CSVStreamException being rethrown by this code.
+	 *            parsing process to short-circuit after parsing the header line,
+	 *            with a CSVStreamException being rethrown by this code.
 	 * @param lineConverter
-	 *            The validator and converter of lines, based on the header
-	 *            line. If the lineChecker returns null, the line will not be
-	 *            passed to the writer.
+	 *            The validator and converter of lines, based on the header line. If
+	 *            the lineChecker returns null, the line will not be passed to the
+	 *            writer.
 	 * @param resultConsumer
 	 *            The consumer of the checked lines.
 	 * @param substituteHeaders
-	 *            A substitute set of headers or null to use the headers from
-	 *            the file. If this is null and headerLineCount is set to 0, an
+	 *            A substitute set of headers or null to use the headers from the
+	 *            file. If this is null and headerLineCount is set to 0, an
 	 *            IllegalArgumentException ill be thrown.
 	 * @param defaultValues
 	 *            A list that is either empty, signifying there are no default
-	 *            values known, or exactly the same length as each row in the
-	 *            CSV file being parsed. If the values for a field are
-	 *            empty/missing, and a non-null, non-empty value appears in this
-	 *            list, it will be substituted in when calculating the
-	 *            statistics.
+	 *            values known, or exactly the same length as each row in the CSV
+	 *            file being parsed. If the values for a field are empty/missing,
+	 *            and a non-null, non-empty value appears in this list, it will be
+	 *            substituted in when calculating the statistics. The default values
+	 *            are substituted in before the lineConverter function is called.
 	 * @param headerLineCount
 	 *            The number of header lines to expect
 	 * @param <T>
-	 *            The type of the results that will be created by the
-	 *            lineChecker and pushed into the writer {@link Consumer}.
+	 *            The type of the results that will be created by the lineChecker
+	 *            and pushed into the writer {@link Consumer}.
 	 * @throws IOException
 	 *             If an error occurred accessing the input.
 	 * @throws CSVStreamException
@@ -340,11 +339,13 @@ public final class CSVStream {
 		try (final MappingIterator<List<String>> it = mapper.readerFor(List.class).with(schema).readValues(reader);) {
 			while (it.hasNext()) {
 				List<String> nextLine = it.next();
-				//System.out.println("CSVStream.parse: nextLine.size()=" + nextLine.size());
-				//System.out.println("CSVStream.parse: nextLine=" + nextLine);
-				//System.out.println("CSVStream.parse: schema.getColumnSeparator()=" + schema.getColumnSeparator());
-				//System.out.println(
-				//		"CSVStream.parse: (int)schema.getColumnSeparator()=" + (int) schema.getColumnSeparator());
+				// System.out.println("CSVStream.parse: nextLine.size()=" + nextLine.size());
+				// System.out.println("CSVStream.parse: nextLine=" + nextLine);
+				// System.out.println("CSVStream.parse: schema.getColumnSeparator()=" +
+				// schema.getColumnSeparator());
+				// System.out.println(
+				// "CSVStream.parse: (int)schema.getColumnSeparator()=" + (int)
+				// schema.getColumnSeparator());
 				if (headers == null) {
 					headers = nextLine.stream().map(v -> v.trim()).map(v -> v.intern()).collect(Collectors.toList());
 					try {
@@ -376,8 +377,9 @@ public final class CSVStream {
 						resultConsumer.accept(apply);
 					}
 				} else {
-					//System.out.println("CSVStream.parse: skipping header line number " + (lineCount + 1) + " out of "
-					//		+ headerLineCount + " : " + nextLine);
+					// System.out.println("CSVStream.parse: skipping header line number " +
+					// (lineCount + 1) + " out of "
+					// + headerLineCount + " : " + nextLine);
 				}
 				lineCount++;
 			}
@@ -393,9 +395,9 @@ public final class CSVStream {
 	}
 
 	/**
-	 * Writes objects from the given {@link Stream} to the given {@link Writer}
-	 * in CSV format, converting them to a {@link List} of String's using the
-	 * given {@link BiFunction}.
+	 * Writes objects from the given {@link Stream} to the given {@link Writer} in
+	 * CSV format, converting them to a {@link List} of String's using the given
+	 * {@link BiFunction}.
 	 * 
 	 * @param writer
 	 *            The Writer that will receive the CSV file.
@@ -419,9 +421,9 @@ public final class CSVStream {
 	}
 
 	/**
-	 * Writes objects from the given {@link Stream} to the given {@link Writer}
-	 * in CSV format, converting them to a {@link List} of String's using the
-	 * given {@link BiFunction}.
+	 * Writes objects from the given {@link Stream} to the given {@link Writer} in
+	 * CSV format, converting them to a {@link List} of String's using the given
+	 * {@link BiFunction}.
 	 * 
 	 * @param writer
 	 *            The Writer that will receive the CSV file.
@@ -455,8 +457,8 @@ public final class CSVStream {
 	}
 
 	/**
-	 * Returns a Jackson {@link SequenceWriter} which will write CSV lines to
-	 * the given {@link OutputStream} using the headers provided.
+	 * Returns a Jackson {@link SequenceWriter} which will write CSV lines to the
+	 * given {@link OutputStream} using the headers provided.
 	 * 
 	 * @param outputStream
 	 *            The writer which will receive the CSV file.
@@ -464,8 +466,8 @@ public final class CSVStream {
 	 *            The column headers that will be used by the returned Jackson
 	 *            {@link SequenceWriter}.
 	 * @return A Jackson {@link SequenceWriter} that can have
-	 *         {@link SequenceWriter#write(Object)} called on it to emit CSV
-	 *         lines to the given {@link OutputStream}.
+	 *         {@link SequenceWriter#write(Object)} called on it to emit CSV lines
+	 *         to the given {@link OutputStream}.
 	 * @throws IOException
 	 *             If there is a problem writing the CSV header line to the
 	 *             {@link OutputStream}.
@@ -476,17 +478,17 @@ public final class CSVStream {
 	}
 
 	/**
-	 * Returns a Jackson {@link SequenceWriter} which will write CSV lines to
-	 * the given {@link OutputStream} using the {@link CsvSchema}.
+	 * Returns a Jackson {@link SequenceWriter} which will write CSV lines to the
+	 * given {@link OutputStream} using the {@link CsvSchema}.
 	 * 
 	 * @param outputStream
 	 *            The writer which will receive the CSV file.
 	 * @param schema
-	 *            The {@link CsvSchema} that will be used by the returned
-	 *            Jackson {@link SequenceWriter}.
+	 *            The {@link CsvSchema} that will be used by the returned Jackson
+	 *            {@link SequenceWriter}.
 	 * @return A Jackson {@link SequenceWriter} that can have
-	 *         {@link SequenceWriter#write(Object)} called on it to emit CSV
-	 *         lines to the given {@link OutputStream}.
+	 *         {@link SequenceWriter#write(Object)} called on it to emit CSV lines
+	 *         to the given {@link OutputStream}.
 	 * @throws IOException
 	 *             If there is a problem writing the CSV header line to the
 	 *             {@link OutputStream}.
@@ -497,8 +499,8 @@ public final class CSVStream {
 	}
 
 	/**
-	 * Returns a Jackson {@link SequenceWriter} which will write CSV lines to
-	 * the given {@link Writer} using the headers provided.
+	 * Returns a Jackson {@link SequenceWriter} which will write CSV lines to the
+	 * given {@link Writer} using the headers provided.
 	 * 
 	 * @param writer
 	 *            The writer which will receive the CSV file.
@@ -506,8 +508,8 @@ public final class CSVStream {
 	 *            The column headers that will be used by the returned Jackson
 	 *            {@link SequenceWriter}.
 	 * @return A Jackson {@link SequenceWriter} that can have
-	 *         {@link SequenceWriter#write(Object)} called on it to emit CSV
-	 *         lines to the given {@link Writer}.
+	 *         {@link SequenceWriter#write(Object)} called on it to emit CSV lines
+	 *         to the given {@link Writer}.
 	 * @throws IOException
 	 *             If there is a problem writing the CSV header line to the
 	 *             {@link Writer}.
@@ -517,17 +519,17 @@ public final class CSVStream {
 	}
 
 	/**
-	 * Returns a Jackson {@link SequenceWriter} which will write CSV lines to
-	 * the given {@link Writer} using the {@link CsvSchema}.
+	 * Returns a Jackson {@link SequenceWriter} which will write CSV lines to the
+	 * given {@link Writer} using the {@link CsvSchema}.
 	 * 
 	 * @param writer
 	 *            The writer which will receive the CSV file.
 	 * @param schema
-	 *            The {@link CsvSchema} that will be used by the returned
-	 *            Jackson {@link SequenceWriter}.
+	 *            The {@link CsvSchema} that will be used by the returned Jackson
+	 *            {@link SequenceWriter}.
 	 * @return A Jackson {@link SequenceWriter} that can have
-	 *         {@link SequenceWriter#write(Object)} called on it to emit CSV
-	 *         lines to the given {@link Writer}.
+	 *         {@link SequenceWriter#write(Object)} called on it to emit CSV lines
+	 *         to the given {@link Writer}.
 	 * @throws IOException
 	 *             If there is a problem writing the CSV header line to the
 	 *             {@link Writer}.
@@ -551,8 +553,7 @@ public final class CSVStream {
 	 * Returns a {@link CsvMapper} that contains the default settings used by
 	 * csvstream.
 	 * 
-	 * @return A new {@link CsvMapper} setup to match the defaults used by
-	 *         csvstream
+	 * @return A new {@link CsvMapper} setup to match the defaults used by csvstream
 	 */
 	public static CsvMapper defaultMapper() {
 		final CsvMapper mapper = new CsvMapper();
@@ -566,8 +567,7 @@ public final class CSVStream {
 	 * Returns a {@link CsvSchema} that contains the default settings used by
 	 * csvstream.
 	 * 
-	 * @return A new {@link CsvSchema} setup to match the defaults used by
-	 *         csvstream
+	 * @return A new {@link CsvSchema} setup to match the defaults used by csvstream
 	 */
 	public static CsvSchema defaultSchema() {
 		return CsvSchema.emptySchema();

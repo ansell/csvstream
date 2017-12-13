@@ -91,7 +91,9 @@ public final class JSONStream {
 	 *            from.
 	 * @param defaultValues
 	 *            Default values for fields to use if there are either no, or empty,
-	 *            values discovered in the document for given fields.
+	 *            values discovered in the document for given fields. The default
+	 *            values are substituted in before the lineConverter function is
+	 *            called.
 	 * @param <T>
 	 *            The type of the results that will be created by the lineChecker
 	 *            and pushed into the writer {@link Consumer}.
