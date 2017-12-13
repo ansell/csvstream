@@ -65,7 +65,7 @@ public class JSONStreamTest {
 	public ExpectedException thrown = ExpectedException.none();
 
 	@Test
-	public void testParseTopLevelObject() throws Exception {
+	public void testParseTopLevelObjectWithArrayPath() throws Exception {
 		
 		String testString = "{ \"base\": [\n" + 
 				"       {\n" + 
@@ -124,6 +124,56 @@ public class JSONStreamTest {
 
 	}
 
+	@Test
+	public void testParseTopLevelObjectWithObjectPath() throws Exception {
+		
+		String testString = "{ \"base\": \n" + 
+				"       {\n" + 
+				"        \"name\":\"Alice\",\n" + 
+				"        \"phone\": [{\n" + 
+				"            \"home\": \"1234567890\",\n" + 
+				"            \"mobile\": \"0001112223\"\n" + 
+				"        }]\n" + 
+				"    } "
+				+ "}";
+		
+		
+		BiFunction<List<String>, List<String>, List<String>> lineConverter = (h, l) -> {
+			System.out.println(h);
+			assertEquals(h.size(), 3);
+			assertEquals(l.size(), 3);
+			assertEquals("homePhone", h.get(0));
+			assertEquals("mobilePhone", h.get(1));
+			assertEquals("name", h.get(2));
+			return l;
+		};
+		Consumer<List<String>> resultConsumer = l -> {
+			System.out.println(l);
+			assertEquals(l.size(), 3);
+			if(l.get(2).equals("Alice")) {
+				assertEquals(l.get(0), "1234567890");
+				assertEquals(l.get(1), "0001112223");
+			} else {
+				fail("Found unrecognised name field value: " + l.get(2));
+			}
+		};
+		JsonPointer basePath = JsonPointer.compile("/base");
+		Map<String, JsonPointer> fieldRelativePaths = new LinkedHashMap<>();
+		fieldRelativePaths.put("name", JsonPointer.compile("/name"));
+		fieldRelativePaths.put("homePhone", JsonPointer.compile("/phone/0/home"));
+		fieldRelativePaths.put("mobilePhone", JsonPointer.compile("/phone/0/mobile"));
+		
+		Map<String, String> defaultValues = Collections.emptyMap();
+
+		System.out.println("JSONStreamUtil.queryJSON:");
+		System.out.println(JSONStreamUtil.queryJSON(new StringReader(testString), basePath));
+		
+		System.out.println("JSONStream.parse:");
+		JSONStream.parse(new StringReader(testString), h -> {
+		}, lineConverter, resultConsumer, basePath, fieldRelativePaths, defaultValues);
+
+	}
+	
 	@Ignore("Broken")
 	@Test
 	public void testParseNoTopLevelObject() throws Exception {

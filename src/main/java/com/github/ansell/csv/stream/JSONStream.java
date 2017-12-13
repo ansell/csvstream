@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonPointer;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.filter.FilteringParserDelegate;
 import com.fasterxml.jackson.core.filter.JsonPointerBasedFilter;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -78,8 +79,15 @@ public final class JSONStream {
 	 * @param resultConsumer
 	 *            The consumer of the checked lines.
 	 * @param basePath
+	 *            The path to go to before checking the field paths (only supports a
+	 *            single point of entry at this point in time). Set to "/" to start
+	 *            at the top of the document.
 	 * @param fieldRelativePaths
+	 *            The relative paths underneath the basePath to select field values
+	 *            from.
 	 * @param defaultValues
+	 *            Default values for fields to use if there are either no, or empty,
+	 *            values discovered in the document for given fields.
 	 * @param <T>
 	 *            The type of the results that will be created by the lineChecker
 	 *            and pushed into the writer {@link Consumer}.
@@ -132,6 +140,8 @@ public final class JSONStream {
 						changedResult.set(i, defaultValues.get(i));
 					}
 				}
+				// If no defaults matched, return the original line instead of copying it to a
+				// new array
 				if (changedResult == null) {
 					return l;
 				} else {
@@ -154,35 +164,44 @@ public final class JSONStream {
 			// JsonNode baseNode = mapper.reader().at(basePath).readTree(parser);
 			// JsonNode baseNode = mapper.reader().at(basePath).readTree(reader);
 
-			// TODO: Replace this with a streaming check and only do this if it is a
-			// START_OBJECT token, otherwise move into the array and only read tree's out
-			// one by one for each element
-			JsonNode baseNode = filteredParser.readValueAsTree();
-
-			if (baseNode == null) {
-				throw new CSVStreamException("Path did not match anything: path='" + basePath.toString() + "'");
-			}
-
+			// Streaming check so that we don't attempt to parse entire large arrays as
+			// trees, rather we stream through the objects internally parsing each of the
+			// internal objects as separate trees
+			// THe FilteringParserDelegate along with the JsonPointerBasedFilter ensures
+			// that the first reported token is in the desired location to start finding
+			// result records
+			// NOTE: The token can be null if the path didn't match anything, in which case,
+			// a CSVStreamException will be thrown
+			JsonToken basePathToken = filteredParser.nextToken();
 			// If the path points to an array, we iterate over the elements, otherwise
 			// process the node as a whole
-			if (baseNode.isArray()) {
-				Iterator<JsonNode> elementIterator = baseNode.elements();
-				while (elementIterator.hasNext()) {
-					JsonNode nextNode = elementIterator.next();
+			if (basePathToken == JsonToken.START_ARRAY) {
+				while (filteredParser.nextToken() == JsonToken.START_OBJECT) {
+					// read everything from this START_OBJECT to the matching END_OBJECT
+					// and return it as a tree model JsonNode
+					JsonNode nextNode = mapper.readTree(filteredParser);
+
 					convertNodeToResult(lineConverter, resultConsumer, basePath, fieldRelativePaths, headers,
 							fieldRelativePointers, defaultValueReplacer, nextNode);
 					lineCount++;
 				}
-			} else if (baseNode.isObject()) {
+			} else if (basePathToken == JsonToken.START_OBJECT) {
+				JsonNode baseNode = filteredParser.readValueAsTree();
+
+				if (baseNode == null) {
+					throw new CSVStreamException("Path did not match anything: path='" + basePath.toString() + "'");
+				}
+
 				convertNodeToResult(lineConverter, resultConsumer, basePath, fieldRelativePaths, headers,
 						fieldRelativePointers, defaultValueReplacer, baseNode);
 				lineCount++;
 			} else {
 				throw new CSVStreamException(
-						"Base JSONPointer must point to either an Array or an Object: instead found "
-								+ mapper.writeValueAsString(baseNode));
+						"Base JSONPointer must point to either an Array or an Object: instead found " + basePathToken);
 			}
-		} catch (IOException | CSVStreamException e) {
+		} catch (IOException |
+
+				CSVStreamException e) {
 			throw e;
 		} catch (Exception e) {
 			throw new CSVStreamException(e);
