@@ -199,9 +199,7 @@ public final class JSONStream {
 				throw new CSVStreamException(
 						"Base JSONPointer must point to either an Array or an Object: instead found " + basePathToken);
 			}
-		} catch (IOException |
-
-				CSVStreamException e) {
+		} catch (IOException | CSVStreamException e) {
 			throw e;
 		} catch (Exception e) {
 			throw new CSVStreamException(e);
