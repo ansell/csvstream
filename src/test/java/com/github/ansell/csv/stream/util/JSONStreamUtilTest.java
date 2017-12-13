@@ -61,7 +61,7 @@ public class JSONStreamUtilTest {
 
 	/**
 	 * Test method for
-	 * {@link com.github.ansell.csv.util.JSONUtil#toPrettyPrint(java.io.Reader, java.io.Writer)}
+	 * {@link com.github.ansell.csv.stream.util.JSONStreamUtil#toPrettyPrint(java.io.Reader, java.io.Writer)}
 	 * .
 	 */
 	@Test
@@ -117,7 +117,7 @@ public class JSONStreamUtilTest {
 
 	/**
 	 * Test method for
-	 * {@link com.github.ansell.csv.util.JSONUtil#queryJSON(java.io.Reader, JsonPointer)}
+	 * {@link com.github.ansell.csv.stream.util.JSONStreamUtil#queryJSON(java.io.Reader, JsonPointer)}
 	 * .
 	 */
 	@Test

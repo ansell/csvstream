@@ -41,6 +41,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.ansell.csv.stream.util.JSONStreamUtil;
 
 /**
  * Implements streaming of JSON files for parsing using Java-8 Lambda functions
@@ -57,7 +58,7 @@ public final class JSONStream {
 	}
 
 	/**
-	 * Stream a CSV file from the given Reader through the header validator, line
+	 * Stream a JSON file from the given Reader through the header validator, line
 	 * checker, and if the line checker succeeds, send the checked/converted line to
 	 * the consumer.
 	 * 
@@ -74,18 +75,9 @@ public final class JSONStream {
 	 *            writer.
 	 * @param resultConsumer
 	 *            The consumer of the checked lines.
-	 * @param substituteHeaders
-	 *            A substitute set of headers or null to use the headers from the
-	 *            file. If this is null and headerLineCount is set to 0, an
-	 *            IllegalArgumentException ill be thrown.
+	 * @param basePath
+	 * @param fieldRelativePaths
 	 * @param defaultValues
-	 *            A list that is either empty, signifying there are no default
-	 *            values known, or exactly the same length as each row in the CSV
-	 *            file being parsed. If the values for a field are empty/missing,
-	 *            and a non-null, non-empty value appears in this list, it will be
-	 *            substituted in when calculating the statistics.
-	 * @param headerLineCount
-	 *            The number of header lines to expect
 	 * @param <T>
 	 *            The type of the results that will be created by the lineChecker
 	 *            and pushed into the writer {@link Consumer}.
@@ -108,13 +100,13 @@ public final class JSONStream {
 		try {
 			headersValidator.accept(headers);
 		} catch (final Exception e) {
-			throw new CSVStreamException("Could not verify substituted headers for csv file", e);
+			throw new CSVStreamException("Could not verify substituted headers for json file", e);
 		}
 
 		List<JsonPointer> fieldRelativePointers = new ArrayList<>(headers.size());
 		for (final String nextHeader : headers) {
-			if (!fieldRelativePaths.containsKey(nextHeader)) {
-				throw new CSVStreamException("No path mapping found for header: " + nextHeader);
+			if (!fieldRelativePaths.containsKey(nextHeader) || fieldRelativePaths.get(nextHeader) == null) {
+				throw new CSVStreamException("No relative JSONPath mapping found for header: " + nextHeader);
 			}
 			fieldRelativePointers.add(fieldRelativePaths.get(nextHeader));
 		}
@@ -150,7 +142,9 @@ public final class JSONStream {
 			JsonNode baseNode = mapper.reader().at(basePath).readTree(parser);
 
 			if (!baseNode.isArray()) {
-				throw new CSVStreamException("Currently only support base JSONPath's pointing to arrays");
+				System.out.println(JSONStreamUtil.toPrettyPrint(baseNode));
+				throw new CSVStreamException("Currently only support base JSONPath's pointing to arrays: was "
+						+ baseNode.getNodeType() + " (path='" + basePath.toString() + "')");
 			}
 
 			Iterator<JsonNode> elementIterator = baseNode.elements();
