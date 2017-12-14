@@ -94,6 +94,8 @@ public final class JSONStream {
 	 *            values discovered in the document for given fields. The default
 	 *            values are substituted in before the lineConverter function is
 	 *            called.
+	 * @param mapper
+	 *            The {@link ObjectMapper} to use to parse the JSON document.
 	 * @param <T>
 	 *            The type of the results that will be created by the lineChecker
 	 *            and pushed into the writer {@link Consumer}.
@@ -105,13 +107,11 @@ public final class JSONStream {
 	public static <T> void parse(final Reader reader, final Consumer<List<String>> headersValidator,
 			final BiFunction<List<String>, List<String>, T> lineConverter, final Consumer<T> resultConsumer,
 			final JsonPointer basePath, final Map<String, JsonPointer> fieldRelativePaths,
-			final Map<String, String> defaultValues) throws IOException, CSVStreamException {
+			final Map<String, String> defaultValues, final ObjectMapper mapper) throws IOException, CSVStreamException {
 
 		if (fieldRelativePaths.isEmpty()) {
 			throw new CSVStreamException("No field paths were set for JSONStream.parse");
 		}
-
-		// JsonPointer basePath = JsonPointer.compile("/");
 
 		List<String> headers = fieldRelativePaths.keySet().stream().map(v -> v.trim()).map(v -> v.intern())
 				.collect(Collectors.toCollection(ArrayList::new));
@@ -157,8 +157,6 @@ public final class JSONStream {
 		}
 
 		int lineCount = 0;
-
-		ObjectMapper mapper = new ObjectMapper();
 
 		// Parent must not be shown, so we can know whether it is an array or object
 		// after a single call to nextToken and to avoid encoding the last part of the

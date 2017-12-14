@@ -68,6 +68,8 @@ public class JSONStreamTest {
 	@Rule
 	public ExpectedException thrown = ExpectedException.none();
 
+	private ObjectMapper mapper = new ObjectMapper();
+	
 	@Test
 	public void testParseTopLevelObjectWithArrayPath() throws Exception {
 
@@ -112,7 +114,7 @@ public class JSONStreamTest {
 
 		System.out.println("JSONStream.parse:");
 		JSONStream.parse(new StringReader(testString), h -> {
-		}, lineConverter, resultConsumer, basePath, fieldRelativePaths, defaultValues);
+		}, lineConverter, resultConsumer, basePath, fieldRelativePaths, defaultValues, mapper);
 
 	}
 
@@ -155,7 +157,7 @@ public class JSONStreamTest {
 
 		System.out.println("JSONStream.parse:");
 		JSONStream.parse(new StringReader(testString), h -> {
-		}, lineConverter, resultConsumer, basePath, fieldRelativePaths, defaultValues);
+		}, lineConverter, resultConsumer, basePath, fieldRelativePaths, defaultValues, mapper);
 
 	}
 
@@ -181,7 +183,7 @@ public class JSONStreamTest {
 
 		System.out.println("JSONStream.parse:");
 		JSONStream.parse(new StringReader(testString), h -> {
-		}, lineConverter, resultConsumer, basePath, fieldRelativePaths, defaultValues);
+		}, lineConverter, resultConsumer, basePath, fieldRelativePaths, defaultValues, mapper);
 
 	}
 
@@ -205,7 +207,7 @@ public class JSONStreamTest {
 
 		System.out.println("JSONStream.parse:");
 		JSONStream.parse(new StringReader(testString), h -> {
-		}, lineConverter, resultConsumer, basePath, fieldRelativePaths, defaultValues);
+		}, lineConverter, resultConsumer, basePath, fieldRelativePaths, defaultValues, mapper);
 
 	}
 
