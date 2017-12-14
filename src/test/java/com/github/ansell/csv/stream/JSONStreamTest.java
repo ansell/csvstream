@@ -31,6 +31,9 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -47,6 +50,7 @@ import org.junit.rules.ExpectedException;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonPointer;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.core.filter.FilteringParserDelegate;
 import com.fasterxml.jackson.core.filter.JsonPointerBasedFilter;
@@ -66,25 +70,13 @@ public class JSONStreamTest {
 
 	@Test
 	public void testParseTopLevelObjectWithArrayPath() throws Exception {
-		
-		String testString = "{ \"base\": [\n" + 
-				"       {\n" + 
-				"        \"name\":\"Alice\",\n" + 
-				"        \"phone\": [{\n" + 
-				"            \"home\": \"1234567890\",\n" + 
-				"            \"mobile\": \"0001112223\"\n" + 
-				"        }]\n" + 
-				"    },\n" + 
-				"    {\n" + 
-				"        \"name\":\"Bob\",\n" + 
-				"        \"phone\": [{\n" + 
-				"            \"home\": \"3456789012\",\n" + 
-				"            \"mobile\": \"4445556677\"\n" + 
-				"        }]\n" + 
-				"    }\n" + 
-				"] }";
-		
-		
+
+		String testString = "{ \"base\": [\n" + "       {\n" + "        \"name\":\"Alice\",\n"
+				+ "        \"phone\": [{\n" + "            \"home\": \"1234567890\",\n"
+				+ "            \"mobile\": \"0001112223\"\n" + "        }]\n" + "    },\n" + "    {\n"
+				+ "        \"name\":\"Bob\",\n" + "        \"phone\": [{\n" + "            \"home\": \"3456789012\",\n"
+				+ "            \"mobile\": \"4445556677\"\n" + "        }]\n" + "    }\n" + "] }";
+
 		BiFunction<List<String>, List<String>, List<String>> lineConverter = (h, l) -> {
 			System.out.println(h);
 			assertEquals(h.size(), 3);
@@ -97,10 +89,10 @@ public class JSONStreamTest {
 		Consumer<List<String>> resultConsumer = l -> {
 			System.out.println(l);
 			assertEquals(l.size(), 3);
-			if(l.get(2).equals("Alice")) {
+			if (l.get(2).equals("Alice")) {
 				assertEquals(l.get(0), "1234567890");
 				assertEquals(l.get(1), "0001112223");
-			} else if(l.get(2).equals("Bob")) {
+			} else if (l.get(2).equals("Bob")) {
 				assertEquals(l.get(0), "3456789012");
 				assertEquals(l.get(1), "4445556677");
 			} else {
@@ -112,12 +104,12 @@ public class JSONStreamTest {
 		fieldRelativePaths.put("name", JsonPointer.compile("/name"));
 		fieldRelativePaths.put("homePhone", JsonPointer.compile("/phone/0/home"));
 		fieldRelativePaths.put("mobilePhone", JsonPointer.compile("/phone/0/mobile"));
-		
+
 		Map<String, String> defaultValues = Collections.emptyMap();
 
 		System.out.println("JSONStreamUtil.queryJSON:");
 		System.out.println(JSONStreamUtil.queryJSON(new StringReader(testString), basePath));
-		
+
 		System.out.println("JSONStream.parse:");
 		JSONStream.parse(new StringReader(testString), h -> {
 		}, lineConverter, resultConsumer, basePath, fieldRelativePaths, defaultValues);
@@ -126,18 +118,11 @@ public class JSONStreamTest {
 
 	@Test
 	public void testParseTopLevelObjectWithObjectPath() throws Exception {
-		
-		String testString = "{ \"base\": \n" + 
-				"       {\n" + 
-				"        \"name\":\"Alice\",\n" + 
-				"        \"phone\": [{\n" + 
-				"            \"home\": \"1234567890\",\n" + 
-				"            \"mobile\": \"0001112223\"\n" + 
-				"        }]\n" + 
-				"    } "
-				+ "}";
-		
-		
+
+		String testString = "{ \"base\": \n" + "       {\n" + "        \"name\":\"Alice\",\n"
+				+ "        \"phone\": [{\n" + "            \"home\": \"1234567890\",\n"
+				+ "            \"mobile\": \"0001112223\"\n" + "        }]\n" + "    } " + "}";
+
 		BiFunction<List<String>, List<String>, List<String>> lineConverter = (h, l) -> {
 			System.out.println(h);
 			assertEquals(h.size(), 3);
@@ -150,7 +135,7 @@ public class JSONStreamTest {
 		Consumer<List<String>> resultConsumer = l -> {
 			System.out.println(l);
 			assertEquals(l.size(), 3);
-			if(l.get(2).equals("Alice")) {
+			if (l.get(2).equals("Alice")) {
 				assertEquals(l.get(0), "1234567890");
 				assertEquals(l.get(1), "0001112223");
 			} else {
@@ -162,40 +147,28 @@ public class JSONStreamTest {
 		fieldRelativePaths.put("name", JsonPointer.compile("/name"));
 		fieldRelativePaths.put("homePhone", JsonPointer.compile("/phone/0/home"));
 		fieldRelativePaths.put("mobilePhone", JsonPointer.compile("/phone/0/mobile"));
-		
+
 		Map<String, String> defaultValues = Collections.emptyMap();
 
 		System.out.println("JSONStreamUtil.queryJSON:");
 		System.out.println(JSONStreamUtil.queryJSON(new StringReader(testString), basePath));
-		
+
 		System.out.println("JSONStream.parse:");
 		JSONStream.parse(new StringReader(testString), h -> {
 		}, lineConverter, resultConsumer, basePath, fieldRelativePaths, defaultValues);
 
 	}
-	
+
 	@Ignore("Broken")
 	@Test
 	public void testParseNoTopLevelObject() throws Exception {
-		
-		String testString = "\"base\": [\n" + 
-				"       {\n" + 
-				"        \"name\":\"Alice\",\n" + 
-				"        \"phone\": [{\n" + 
-				"            \"home\": \"1234567890\",\n" + 
-				"            \"mobile\": \"0001112223\"\n" + 
-				"        }]\n" + 
-				"    },\n" + 
-				"    {\n" + 
-				"        \"name\":\"Bob\",\n" + 
-				"        \"phone\": [{\n" + 
-				"            \"home\": \"3456789012\",\n" + 
-				"            \"mobile\": \"4445556677\"\n" + 
-				"        }]\n" + 
-				"    }\n" + 
-				"]";
-		
-		
+
+		String testString = "\"base\": [\n" + "       {\n" + "        \"name\":\"Alice\",\n" + "        \"phone\": [{\n"
+				+ "            \"home\": \"1234567890\",\n" + "            \"mobile\": \"0001112223\"\n"
+				+ "        }]\n" + "    },\n" + "    {\n" + "        \"name\":\"Bob\",\n" + "        \"phone\": [{\n"
+				+ "            \"home\": \"3456789012\",\n" + "            \"mobile\": \"4445556677\"\n"
+				+ "        }]\n" + "    }\n" + "]";
+
 		BiFunction<List<String>, List<String>, List<String>> lineConverter = (h, l) -> l;
 		Consumer<List<String>> resultConsumer = l -> {
 		};
@@ -205,7 +178,7 @@ public class JSONStreamTest {
 
 		System.out.println("JSONStreamUtil.queryJSON:");
 		System.out.println(JSONStreamUtil.queryJSON(new StringReader(testString), basePath));
-		
+
 		System.out.println("JSONStream.parse:");
 		JSONStream.parse(new StringReader(testString), h -> {
 		}, lineConverter, resultConsumer, basePath, fieldRelativePaths, defaultValues);
@@ -215,17 +188,11 @@ public class JSONStreamTest {
 	@Ignore("Broken")
 	@Test
 	public void testParseNoTopLevelObjectOrArrays() throws Exception {
-		
-		String testString = "\"base\": \n" + 
-				"       {\n" + 
-				"        \"name\":\"Alice\",\n" + 
-				"        \"phone\": [{\n" + 
-				"            \"home\": \"1234567890\",\n" + 
-				"            \"mobile\": \"0001112223\"\n" + 
-				"        }]\n" + 
-				"    }\n";
-		
-		
+
+		String testString = "\"base\": \n" + "       {\n" + "        \"name\":\"Alice\",\n" + "        \"phone\": [{\n"
+				+ "            \"home\": \"1234567890\",\n" + "            \"mobile\": \"0001112223\"\n"
+				+ "        }]\n" + "    }\n";
+
 		BiFunction<List<String>, List<String>, List<String>> lineConverter = (h, l) -> l;
 		Consumer<List<String>> resultConsumer = l -> {
 		};
@@ -235,34 +202,27 @@ public class JSONStreamTest {
 
 		System.out.println("JSONStreamUtil.queryJSON:");
 		System.out.println(JSONStreamUtil.queryJSON(new StringReader(testString), basePath));
-		
+
 		System.out.println("JSONStream.parse:");
 		JSONStream.parse(new StringReader(testString), h -> {
 		}, lineConverter, resultConsumer, basePath, fieldRelativePaths, defaultValues);
 
 	}
-	
+
 	@Test
 	public void testJsonPointerBasedFilterNoArray() throws Exception {
 		ObjectMapper JSON_MAPPER = new ObjectMapper();
 		JsonFactory JSON_FACTORY = new JsonFactory(JSON_MAPPER);
-		
-		String testString = "{ \"base\": \n" + 
-				"       {\n" + 
-				"        \"name\":\"Alice\",\n" + 
-				"        \"phone\": [{\n" + 
-				"            \"home\": \"1234567890\",\n" + 
-				"            \"mobile\": \"0001112223\"\n" + 
-				"        }]\n" + 
-				"    } }\n";
-		
-        Reader input = new StringReader(testString);
+
+		String testString = "{ \"base\": \n" + "       {\n" + "        \"name\":\"Alice\",\n"
+				+ "        \"phone\": [{\n" + "            \"home\": \"1234567890\",\n"
+				+ "            \"mobile\": \"0001112223\"\n" + "        }]\n" + "    } }\n";
+
+		Reader input = new StringReader(testString);
 		JsonParser p0 = JSON_FACTORY.createParser(input);
-        String pathExpr = "/base";
+		String pathExpr = "/base";
 		boolean includeParent = false;
-		JsonParser p = new FilteringParserDelegate(p0,
-                new JsonPointerBasedFilter(pathExpr),
-                includeParent, false);
+		JsonParser p = new FilteringParserDelegate(p0, new JsonPointerBasedFilter(pathExpr), includeParent, false);
 		JsonNode readValueAsTree = p.readValueAsTree();
 		System.out.println("FilteringParserDelegate + JsonPointerBasedFilter no array:");
 		System.out.println(JSONStreamUtil.toPrettyPrint(readValueAsTree));
@@ -272,23 +232,16 @@ public class JSONStreamTest {
 	public void testJsonPointerBasedFilterWithArray() throws Exception {
 		ObjectMapper JSON_MAPPER = new ObjectMapper();
 		JsonFactory JSON_FACTORY = new JsonFactory(JSON_MAPPER);
-		
-		String testString = "{ \"base\": [ \n" + 
-				"       {\n" + 
-				"        \"name\":\"Alice\",\n" + 
-				"        \"phone\": [{\n" + 
-				"            \"home\": \"1234567890\",\n" + 
-				"            \"mobile\": \"0001112223\"\n" + 
-				"        }]\n" + 
-				"    } ] }\n";
-		
-        Reader input = new StringReader(testString);
+
+		String testString = "{ \"base\": [ \n" + "       {\n" + "        \"name\":\"Alice\",\n"
+				+ "        \"phone\": [{\n" + "            \"home\": \"1234567890\",\n"
+				+ "            \"mobile\": \"0001112223\"\n" + "        }]\n" + "    } ] }\n";
+
+		Reader input = new StringReader(testString);
 		JsonParser p0 = JSON_FACTORY.createParser(input);
-        String pathExpr = "/base/0";
+		String pathExpr = "/base/0";
 		boolean includeParent = false;
-		JsonParser p = new FilteringParserDelegate(p0,
-                new JsonPointerBasedFilter(pathExpr),
-                includeParent, false);
+		JsonParser p = new FilteringParserDelegate(p0, new JsonPointerBasedFilter(pathExpr), includeParent, false);
 		JsonNode readValueAsTree = p.readValueAsTree();
 		System.out.println("FilteringParserDelegate + JsonPointerBasedFilter with array:");
 		System.out.println(JSONStreamUtil.toPrettyPrint(readValueAsTree));
@@ -298,23 +251,16 @@ public class JSONStreamTest {
 	public void testJsonPointerBasedFilterWithArrayFurtherAnalysis() throws Exception {
 		ObjectMapper JSON_MAPPER = new ObjectMapper();
 		JsonFactory JSON_FACTORY = new JsonFactory(JSON_MAPPER);
-		
-		String testString = "{ \"base\": [ \n" + 
-				"       {\n" + 
-				"        \"name\":\"Alice\",\n" + 
-				"        \"phone\": [{\n" + 
-				"            \"home\": \"1234567890\",\n" + 
-				"            \"mobile\": \"0001112223\"\n" + 
-				"        }]\n" + 
-				"    } ] }\n";
-		
-        Reader input = new StringReader(testString);
+
+		String testString = "{ \"base\": [ \n" + "       {\n" + "        \"name\":\"Alice\",\n"
+				+ "        \"phone\": [{\n" + "            \"home\": \"1234567890\",\n"
+				+ "            \"mobile\": \"0001112223\"\n" + "        }]\n" + "    } ] }\n";
+
+		Reader input = new StringReader(testString);
 		JsonParser p0 = JSON_FACTORY.createParser(input);
-        String pathExpr = "/base/0";
+		String pathExpr = "/base/0";
 		boolean includeParent = false;
-		JsonParser p = new FilteringParserDelegate(p0,
-                new JsonPointerBasedFilter(pathExpr),
-                includeParent, false);
+		JsonParser p = new FilteringParserDelegate(p0, new JsonPointerBasedFilter(pathExpr), includeParent, false);
 		JsonNode readValueAsTree = p.readValueAsTree();
 		System.out.println("FilteringParserDelegate + JsonPointerBasedFilter with array:");
 		System.out.println(JSONStreamUtil.toPrettyPrint(readValueAsTree));
@@ -323,5 +269,45 @@ public class JSONStreamTest {
 		String homePhoneNumberString = JSONStreamUtil.toPrettyPrint(homePhoneNumber);
 		System.out.println(homePhoneNumberString);
 		assertEquals("\"1234567890\"", homePhoneNumberString);
+	}
+
+	/**
+	 * Test to verify that code in StackOverflow answer derived from this works.
+	 * 
+	 * @link <a href="https://stackoverflow.com/a/47804189/638674">StackOverflow
+	 *       answer for 'Use Jackson To Stream Parse an Array of Json Objects'</a>
+	 * @throws Exception
+	 */
+	@Ignore("Example code only")
+	@Test
+	public void testStackOverflowAnswer() throws Exception {
+		Path sourceFile = Paths.get("/path/to/my/file.json");
+		// Point the basePath to a starting point in the file
+		JsonPointer basePath = JsonPointer.compile("/");
+		ObjectMapper mapper = new ObjectMapper();
+		try (InputStream inputSource = Files.newInputStream(sourceFile);
+				JsonParser baseParser = mapper.getFactory().createParser(inputSource);
+				JsonParser filteredParser = new FilteringParserDelegate(baseParser,
+						new JsonPointerBasedFilter(basePath), false, false);) {
+			// Call nextToken once to initialize the filteredParser
+			JsonToken basePathToken = filteredParser.nextToken();
+			if (basePathToken != JsonToken.START_ARRAY) {
+				throw new IllegalStateException("Base path did not point to an array: found " + basePathToken);
+			}
+			while (filteredParser.nextToken() == JsonToken.START_OBJECT) {
+				// Parse each object inside of the array into a separate tree model
+				// to keep a fixed memory footprint when parsing files
+				// larger than the available memory
+				JsonNode nextNode = mapper.readTree(filteredParser);
+				// Consume/process the node for example:
+				JsonPointer fieldRelativePath = JsonPointer.compile("/test1");
+				JsonNode valueNode = nextNode.at(fieldRelativePath);
+				if (!valueNode.isValueNode()) {
+					throw new IllegalStateException("Did not find value " + fieldRelativePath.toString()
+							+ " after setting base to " + basePath.toString());
+				}
+				System.out.println(valueNode.asText());
+			}
+		}
 	}
 }
