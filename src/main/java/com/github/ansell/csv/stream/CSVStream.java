@@ -546,7 +546,20 @@ public final class CSVStream {
 	 * @return A {@link CsvSchema} object including the given header items.
 	 */
 	public static CsvSchema buildSchema(List<String> headers) {
-		return CsvSchema.builder().addColumns(headers, ColumnType.STRING).setUseHeader(true).build();
+		return buildSchema(headers, true);
+	}
+
+	/**
+	 * Build a {@link CsvSchema} object using the given headers.
+	 * 
+	 * @param headers
+	 *            The list of strings in the header.
+	 * @param useHeader
+	 * 			  Set to false to avoid writing the header line, which is necessary if appending to an existing file.
+	 * @return A {@link CsvSchema} object including the given header items.
+	 */
+	public static CsvSchema buildSchema(List<String> headers, boolean useHeader) {
+		return CsvSchema.builder().addColumns(headers, ColumnType.STRING).setUseHeader(useHeader).build();
 	}
 
 	/**

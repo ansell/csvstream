@@ -198,7 +198,8 @@ public final class JSONStream {
 				lineCount++;
 			} else {
 				throw new CSVStreamException(
-						"Base JSONPointer must point to either an Array or an Object: instead found " + basePathToken);
+						"Base JSONPointer must point to either an Array or an Object: instead found " + basePathToken
+								+ " (path was " + basePath.toString() + ")");
 			}
 		} catch (IOException | CSVStreamException e) {
 			throw e;
