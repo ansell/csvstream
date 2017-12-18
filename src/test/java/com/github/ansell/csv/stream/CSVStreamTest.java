@@ -381,7 +381,7 @@ public class CSVStreamTest {
 	}
 
 	@Test
-	public final void testWriteSingleValueNoHeader() throws Exception {
+	public final void testWriteSingleValueAppend() throws Exception {
 		List<String> headers = Arrays.asList("TestHeader1");
 		StringWriter writer = new StringWriter();
 
