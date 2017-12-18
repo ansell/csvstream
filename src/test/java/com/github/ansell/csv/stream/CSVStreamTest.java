@@ -248,9 +248,8 @@ public class CSVStreamTest {
 		List<String> headers = new ArrayList<>();
 		List<List<String>> lines = new ArrayList<>();
 
-		CSVStream.parse(
-				new StringReader(
-						"Test1, Another2, Else3\nAnswer1, Alternative2, Attempt3\nAnswer4, Alternative5, Attempt6\nAnswer7, Alternative8, Attempt9"),
+		CSVStream.parse(new StringReader(
+				"Test1, Another2, Else3\nAnswer1, Alternative2, Attempt3\nAnswer4, Alternative5, Attempt6\nAnswer7, Alternative8, Attempt9"),
 				h -> headers.addAll(h), (h, l) -> l, l -> lines.add(l));
 		assertEquals(3, headers.size());
 		assertTrue(headers.contains("Test1"));
@@ -317,6 +316,17 @@ public class CSVStreamTest {
 	}
 
 	@Test
+	public final void testWriteEmptyNoHeader() throws Exception {
+		List<String> headers = Arrays.asList("TestHeader1");
+		StringWriter writer = new StringWriter();
+		CSVStream.newCSVWriter(writer, CSVStream.buildSchema(headers, false)).writeAll(Arrays.asList(Arrays.asList()));
+		System.out.println(writer.toString());
+		// Nothing written if an empty line is submitted and header writing is switched
+		// off
+		assertEquals("", writer.toString());
+	}
+
+	@Test
 	public final void testWriteSingleEmptyString() throws Exception {
 		List<String> headers = Arrays.asList("TestHeader1");
 		StringWriter writer = new StringWriter();
@@ -340,6 +350,71 @@ public class CSVStreamTest {
 
 		assertTrue("Headers were not recognised", headersGood.get());
 		assertTrue("Line was not recognised", lineGood.get());
+	}
+
+	@Test
+	public final void testWriteSingleEmptyStringNoHeader() throws Exception {
+		List<String> headers = Arrays.asList("TestHeader1");
+		StringWriter writer = new StringWriter();
+		CSVStream.newCSVWriter(writer, CSVStream.buildSchema(headers, false))
+				.writeAll(Arrays.asList(Arrays.asList("")));
+		System.out.println(writer.toString());
+		assertEquals("\n", writer.toString());
+
+		AtomicBoolean headersGood = new AtomicBoolean(false);
+		AtomicBoolean lineGood = new AtomicBoolean(true);
+		CSVStream.parse(new StringReader(writer.toString()), h -> {
+			if (h.size() == 1 && h.get(0).isEmpty()) {
+				// Trivial single empty header string, due to the header not expected to be
+				// written out in this case to allow for empty string record appends to an
+				// existing file
+				headersGood.set(true);
+			}
+		}, (h, l) -> {
+			lineGood.set(false);
+			return l;
+		}, l -> {
+		});
+
+		assertTrue("Headers were not recognised", headersGood.get());
+		assertTrue("Line was not recognised", lineGood.get());
+	}
+
+	@Test
+	public final void testWriteSingleValueAppend() throws Exception {
+		List<String> headers = Arrays.asList("TestHeader1");
+		StringWriter writer = new StringWriter();
+
+		// Fake writing to an existing file...
+		writer.append("TestHeader1\n");
+		writer.append("TestValue1\n");
+
+		CSVStream.newCSVWriter(writer, CSVStream.buildSchema(headers, false))
+				.writeAll(Arrays.asList(Arrays.asList("TestValue2")));
+		System.out.println(writer.toString());
+		assertEquals("TestHeader1\nTestValue1\nTestValue2\n", writer.toString());
+
+		AtomicBoolean headersGood = new AtomicBoolean(false);
+		AtomicBoolean lineGood = new AtomicBoolean(true);
+		AtomicInteger lineCount = new AtomicInteger(0);
+		CSVStream.parse(new StringReader(writer.toString()), h -> {
+			if (h.size() == 1 && h.contains("TestHeader1")) {
+				headersGood.set(true);
+			}
+		}, (h, l) -> {
+			if (l.size() == 1 && (l.contains("TestValue1") || l.contains("TestValue2"))) {
+				lineGood.set(true);
+			} else {
+
+			}
+			return l;
+		}, l -> {
+			lineCount.incrementAndGet();
+		});
+
+		assertTrue("Headers were not recognised", headersGood.get());
+		assertTrue("Line was not recognised", lineGood.get());
+		assertEquals("Did not receive expected number of lines", 2, lineCount.get());
 	}
 
 	@Test
@@ -527,8 +602,7 @@ public class CSVStreamTest {
 			return l;
 		}, l -> {
 			lineCount.incrementAndGet();
-		}, null, Arrays.asList("TestValue1"), 1, CSVStream.defaultMapper(),
-				CSVStream.defaultSchema());
+		}, null, Arrays.asList("TestValue1"), 1, CSVStream.defaultMapper(), CSVStream.defaultSchema());
 
 		assertTrue("Headers were not recognised", headersGood.get());
 		assertTrue("Line was not recognised", lineGood.get());
@@ -579,9 +653,8 @@ public class CSVStreamTest {
 		AtomicBoolean lineGood = new AtomicBoolean(false);
 		AtomicBoolean foundLine = new AtomicBoolean(false);
 		AtomicBoolean lineError = new AtomicBoolean(false);
-		CSVStream.parse(
-				new StringReader(
-						"TestShouldNotSeeThisHeader1\nTestShouldDefinitelyNotSeeThisHeader2\nYetAnotherHiddenHeader3\nTestValue1"),
+		CSVStream.parse(new StringReader(
+				"TestShouldNotSeeThisHeader1\nTestShouldDefinitelyNotSeeThisHeader2\nYetAnotherHiddenHeader3\nTestValue1"),
 				h -> {
 					if (h.size() == 1 && h.contains("TestHeader1")) {
 						headersGood.set(true);
