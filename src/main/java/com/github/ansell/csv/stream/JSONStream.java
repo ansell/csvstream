@@ -237,8 +237,8 @@ public final class JSONStream {
 				nextLine.set(i, node.asText());
 			}
 		}
-		System.out.println("CSVStream.parse: nextLine.size()=" + nextLine.size());
-		System.out.println("CSVStream.parse: nextLine=" + nextLine);
+		// System.out.println("JSONStream.parse: nextLine.size()=" + nextLine.size());
+		// System.out.println("JSONStream.parse: nextLine=" + nextLine);
 		final List<String> defaultReplacedLine = defaultValueReplacer.apply(nextLine);
 
 		final T apply = lineConverter.apply(headers, defaultReplacedLine);
