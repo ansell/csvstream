@@ -217,14 +217,16 @@ public final class JSONStream {
 		initialiseResult(nextLine, fieldRelativePaths.size());
 		for (int i = 0; i < fieldRelativePointers.size(); i++) {
 			JsonPointer nextField = fieldRelativePointers.get(i);
-			// read everything from this START_OBJECT to the matching END_OBJECT
-			// and return it as a tree model ObjectNode
-			JsonNode node = nextNode.at(nextField);
-			if (!node.isValueNode()) {
-				throw new CSVStreamException("Field relative pointers must point to value nodes: instead found "
-						+ nextField.toString() + " after setting base to " + basePath.toString());
+			if(nextField != null) {
+				// read everything from this START_OBJECT to the matching END_OBJECT
+				// and return it as a tree model ObjectNode
+				JsonNode node = nextNode.at(nextField);
+				if (!node.isValueNode()) {
+					throw new CSVStreamException("Field relative pointers must point to value nodes: instead found "
+							+ nextField.toString() + " after setting base to " + basePath.toString());
+				}
+				nextLine.set(i, node.asText());
 			}
-			nextLine.set(i, node.asText());
 		}
 		// System.out.println("CSVStream.parse: nextLine.size()=" + nextLine.size());
 		// System.out.println("CSVStream.parse: nextLine=" + nextLine);
