@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -106,14 +107,14 @@ public final class JSONStream {
 	 */
 	public static <T> void parse(final Reader reader, final Consumer<List<String>> headersValidator,
 			final BiFunction<List<String>, List<String>, T> lineConverter, final Consumer<T> resultConsumer,
-			final JsonPointer basePath, final Map<String, JsonPointer> fieldRelativePaths,
+			final JsonPointer basePath, final Map<String, Optional<JsonPointer>> fieldRelativePaths,
 			final Map<String, String> defaultValues, final ObjectMapper mapper) throws IOException, CSVStreamException {
 
 		if (fieldRelativePaths.isEmpty()) {
 			throw new CSVStreamException("No field paths were set for JSONStream.parse");
 		}
 
-		List<String> headers = fieldRelativePaths.keySet().stream().map(v -> v.trim()).map(v -> v.intern())
+		final List<String> headers = fieldRelativePaths.keySet().stream().map(v -> v.trim()).map(v -> v.intern())
 				.collect(Collectors.toCollection(ArrayList::new));
 		Collections.sort(headers, String::compareTo);
 
@@ -125,10 +126,13 @@ public final class JSONStream {
 
 		List<JsonPointer> fieldRelativePointers = new ArrayList<>(headers.size());
 		for (final String nextHeader : headers) {
-			if (!fieldRelativePaths.containsKey(nextHeader) || fieldRelativePaths.get(nextHeader) == null) {
+			if (!fieldRelativePaths.containsKey(nextHeader)) {
 				throw new CSVStreamException("No relative JSONPath mapping found for header: " + nextHeader);
 			}
-			fieldRelativePointers.add(fieldRelativePaths.get(nextHeader));
+			Optional<JsonPointer> optionalFieldRelativePath = fieldRelativePaths.get(nextHeader);
+			if (optionalFieldRelativePath.isPresent()) {
+				fieldRelativePointers.add(optionalFieldRelativePath.get());
+			}
 		}
 
 		final Function<List<String>, List<String>> defaultValueReplacer;
@@ -139,11 +143,17 @@ public final class JSONStream {
 			defaultValueReplacer = l -> {
 				List<String> changedResult = null;
 				for (int i = 0; i < l.size(); i++) {
-					if (l.get(i).isEmpty() && !defaultValues.get(i).isEmpty()) {
-						if (changedResult == null) {
-							changedResult = new ArrayList<>(l);
+					if (l.get(i).isEmpty()) {
+						String nextHeader = headers.get(i);
+						if (defaultValues.containsKey(nextHeader)) {
+							String nextDefaultValue = defaultValues.get(nextHeader);
+							if (!nextDefaultValue.isEmpty()) {
+								if (changedResult == null) {
+									changedResult = new ArrayList<>(l);
+								}
+								changedResult.set(i, nextDefaultValue);
+							}
 						}
-						changedResult.set(i, defaultValues.get(i));
 					}
 				}
 				// If no defaults matched, return the original line instead of copying it to a
@@ -210,17 +220,16 @@ public final class JSONStream {
 
 	public static <T> void convertNodeToResult(final BiFunction<List<String>, List<String>, T> lineConverter,
 			final Consumer<T> resultConsumer, final JsonPointer basePath,
-			final Map<String, JsonPointer> fieldRelativePaths, List<String> headers,
+			final Map<String, Optional<JsonPointer>> fieldRelativePaths, List<String> headers,
 			List<JsonPointer> fieldRelativePointers, final Function<List<String>, List<String>> defaultValueReplacer,
 			JsonNode nextNode) {
-		List<String> nextLine = new ArrayList<>(fieldRelativePaths.size());
-		initialiseResult(nextLine, fieldRelativePaths.size());
-		for (int i = 0; i < fieldRelativePointers.size(); i++) {
-			JsonPointer nextField = fieldRelativePointers.get(i);
-			if(nextField != null) {
-				// read everything from this START_OBJECT to the matching END_OBJECT
-				// and return it as a tree model ObjectNode
-				JsonNode node = nextNode.at(nextField);
+		int fieldCount = headers.size();
+		List<String> nextLine = initialiseResult(fieldCount);
+		for (int i = 0; i < fieldCount; i++) {
+			String nextHeader = headers.get(i);
+			Optional<JsonPointer> nextField = fieldRelativePaths.get(nextHeader);
+			if (nextField.isPresent()) {
+				JsonNode node = nextNode.at(nextField.get());
 				if (!node.isValueNode()) {
 					throw new CSVStreamException("Field relative pointers must point to value nodes: instead found "
 							+ nextField.toString() + " after setting base to " + basePath.toString());
@@ -228,18 +237,8 @@ public final class JSONStream {
 				nextLine.set(i, node.asText());
 			}
 		}
-		// System.out.println("CSVStream.parse: nextLine.size()=" + nextLine.size());
-		// System.out.println("CSVStream.parse: nextLine=" + nextLine);
-		// System.out.println("CSVStream.parse: schema.getColumnSeparator()=" +
-		// schema.getColumnSeparator());
-		// System.out.println(
-		// "CSVStream.parse: (int)schema.getColumnSeparator()=" + (int)
-		// schema.getColumnSeparator());
-		if (nextLine.size() != headers.size()) {
-			throw new CSVStreamException("Line and header sizes were different: expected " + headers.size() + ", found "
-					+ nextLine.size() + " headers=" + headers + " line=" + nextLine);
-		}
-
+		System.out.println("CSVStream.parse: nextLine.size()=" + nextLine.size());
+		System.out.println("CSVStream.parse: nextLine=" + nextLine);
 		final List<String> defaultReplacedLine = defaultValueReplacer.apply(nextLine);
 
 		final T apply = lineConverter.apply(headers, defaultReplacedLine);
@@ -251,10 +250,19 @@ public final class JSONStream {
 		}
 	}
 
-	private static void initialiseResult(List<String> nextLine, int size) {
+	/**
+	 * Creates a new mutable {@link List} with size empty Strings in it.
+	 * 
+	 * @param size
+	 *            The number of empty strings to be in the result list
+	 * @return A {@link List} with size empty strings.
+	 */
+	private static List<String> initialiseResult(int size) {
+		final List<String> result = new ArrayList<>(size);
 		for (int i = 0; i < size; i++) {
-			nextLine.add("");
+			result.add("");
 		}
+		return result;
 	}
 
 }

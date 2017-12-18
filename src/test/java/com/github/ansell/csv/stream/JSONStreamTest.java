@@ -39,6 +39,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
@@ -102,10 +103,10 @@ public class JSONStreamTest {
 			}
 		};
 		JsonPointer basePath = JsonPointer.compile("/base");
-		Map<String, JsonPointer> fieldRelativePaths = new LinkedHashMap<>();
-		fieldRelativePaths.put("name", JsonPointer.compile("/name"));
-		fieldRelativePaths.put("homePhone", JsonPointer.compile("/phone/0/home"));
-		fieldRelativePaths.put("mobilePhone", JsonPointer.compile("/phone/0/mobile"));
+		Map<String, Optional<JsonPointer>> fieldRelativePaths = new LinkedHashMap<>();
+		fieldRelativePaths.put("name", Optional.of(JsonPointer.compile("/name")));
+		fieldRelativePaths.put("homePhone", Optional.of(JsonPointer.compile("/phone/0/home")));
+		fieldRelativePaths.put("mobilePhone", Optional.of(JsonPointer.compile("/phone/0/mobile")));
 
 		Map<String, String> defaultValues = Collections.emptyMap();
 
@@ -145,10 +146,10 @@ public class JSONStreamTest {
 			}
 		};
 		JsonPointer basePath = JsonPointer.compile("/base");
-		Map<String, JsonPointer> fieldRelativePaths = new LinkedHashMap<>();
-		fieldRelativePaths.put("name", JsonPointer.compile("/name"));
-		fieldRelativePaths.put("homePhone", JsonPointer.compile("/phone/0/home"));
-		fieldRelativePaths.put("mobilePhone", JsonPointer.compile("/phone/0/mobile"));
+		Map<String, Optional<JsonPointer>> fieldRelativePaths = new LinkedHashMap<>();
+		fieldRelativePaths.put("name", Optional.of(JsonPointer.compile("/name")));
+		fieldRelativePaths.put("homePhone", Optional.of(JsonPointer.compile("/phone/0/home")));
+		fieldRelativePaths.put("mobilePhone", Optional.of(JsonPointer.compile("/phone/0/mobile")));
 
 		Map<String, String> defaultValues = Collections.emptyMap();
 
@@ -175,7 +176,7 @@ public class JSONStreamTest {
 		Consumer<List<String>> resultConsumer = l -> {
 		};
 		JsonPointer basePath = JsonPointer.compile("/base/1");
-		Map<String, JsonPointer> fieldRelativePaths = new HashMap<>();
+		Map<String, Optional<JsonPointer>> fieldRelativePaths = new LinkedHashMap<>();
 		Map<String, String> defaultValues = Collections.emptyMap();
 
 		System.out.println("JSONStreamUtil.queryJSON:");
@@ -199,7 +200,7 @@ public class JSONStreamTest {
 		Consumer<List<String>> resultConsumer = l -> {
 		};
 		JsonPointer basePath = JsonPointer.compile("/base/name");
-		Map<String, JsonPointer> fieldRelativePaths = new HashMap<>();
+		Map<String, Optional<JsonPointer>> fieldRelativePaths = new LinkedHashMap<>();
 		Map<String, String> defaultValues = Collections.emptyMap();
 
 		System.out.println("JSONStreamUtil.queryJSON:");
