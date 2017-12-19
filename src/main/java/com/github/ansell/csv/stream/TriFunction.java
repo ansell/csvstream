@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, Peter Ansell
+ * Copyright (c) 2017, Peter Ansell
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
