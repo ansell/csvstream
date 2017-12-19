@@ -106,7 +106,7 @@ public final class JSONStream {
 	 *             If an error occurred validating the input.
 	 */
 	public static <T> void parse(final Reader reader, final Consumer<List<String>> headersValidator,
-			final BiFunction<List<String>, List<String>, T> lineConverter, final Consumer<T> resultConsumer,
+			final TriFunction<JsonNode, List<String>, List<String>, T> lineConverter, final Consumer<T> resultConsumer,
 			final JsonPointer basePath, final Map<String, Optional<JsonPointer>> fieldRelativePaths,
 			final Map<String, String> defaultValues, final ObjectMapper mapper) throws IOException, CSVStreamException {
 
@@ -218,7 +218,7 @@ public final class JSONStream {
 		}
 	}
 
-	public static <T> void convertNodeToResult(final BiFunction<List<String>, List<String>, T> lineConverter,
+	public static <T> void convertNodeToResult(final TriFunction<JsonNode, List<String>, List<String>, T> lineConverter,
 			final Consumer<T> resultConsumer, final JsonPointer basePath,
 			final Map<String, Optional<JsonPointer>> fieldRelativePaths, List<String> headers,
 			List<JsonPointer> fieldRelativePointers, final Function<List<String>, List<String>> defaultValueReplacer,
@@ -241,7 +241,7 @@ public final class JSONStream {
 		// System.out.println("JSONStream.parse: nextLine=" + nextLine);
 		final List<String> defaultReplacedLine = defaultValueReplacer.apply(nextLine);
 
-		final T apply = lineConverter.apply(headers, defaultReplacedLine);
+		final T apply = lineConverter.apply(nextNode, headers, defaultReplacedLine);
 
 		// Line checker returning null indicates that a value was
 		// not found, and will not be sent to the consumer.

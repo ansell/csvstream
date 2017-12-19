@@ -80,14 +80,14 @@ public class JSONStreamTest {
 				+ "        \"name\":\"Bob\",\n" + "        \"phone\": [{\n" + "            \"home\": \"3456789012\",\n"
 				+ "            \"mobile\": \"4445556677\"\n" + "        }]\n" + "    }\n" + "] }";
 
-		BiFunction<List<String>, List<String>, List<String>> lineConverter = (h, l) -> {
-			System.out.println(h);
-			assertEquals(h.size(), 3);
-			assertEquals(l.size(), 3);
-			assertEquals("homePhone", h.get(0));
-			assertEquals("mobilePhone", h.get(1));
-			assertEquals("name", h.get(2));
-			return l;
+		TriFunction<JsonNode, List<String>, List<String>, List<String>> lineConverter = (node, header, line) -> {
+			System.out.println(header);
+			assertEquals(header.size(), 3);
+			assertEquals(line.size(), 3);
+			assertEquals("homePhone", header.get(0));
+			assertEquals("mobilePhone", header.get(1));
+			assertEquals("name", header.get(2));
+			return line;
 		};
 		Consumer<List<String>> resultConsumer = l -> {
 			System.out.println(l);
@@ -126,14 +126,14 @@ public class JSONStreamTest {
 				+ "        \"phone\": [{\n" + "            \"home\": \"1234567890\",\n"
 				+ "            \"mobile\": \"0001112223\"\n" + "        }]\n" + "    } " + "}";
 
-		BiFunction<List<String>, List<String>, List<String>> lineConverter = (h, l) -> {
-			System.out.println(h);
-			assertEquals(h.size(), 3);
-			assertEquals(l.size(), 3);
-			assertEquals("homePhone", h.get(0));
-			assertEquals("mobilePhone", h.get(1));
-			assertEquals("name", h.get(2));
-			return l;
+		TriFunction<JsonNode, List<String>, List<String>, List<String>> lineConverter = (node, header, line) -> {
+			System.out.println(header);
+			assertEquals(header.size(), 3);
+			assertEquals(line.size(), 3);
+			assertEquals("homePhone", header.get(0));
+			assertEquals("mobilePhone", header.get(1));
+			assertEquals("name", header.get(2));
+			return line;
 		};
 		Consumer<List<String>> resultConsumer = l -> {
 			System.out.println(l);
@@ -172,7 +172,7 @@ public class JSONStreamTest {
 				+ "            \"home\": \"3456789012\",\n" + "            \"mobile\": \"4445556677\"\n"
 				+ "        }]\n" + "    }\n" + "]";
 
-		BiFunction<List<String>, List<String>, List<String>> lineConverter = (h, l) -> l;
+		TriFunction<JsonNode, List<String>, List<String>, List<String>> lineConverter = (node, header, line) -> line;
 		Consumer<List<String>> resultConsumer = l -> {
 		};
 		JsonPointer basePath = JsonPointer.compile("/base/1");
@@ -196,7 +196,7 @@ public class JSONStreamTest {
 				+ "            \"home\": \"1234567890\",\n" + "            \"mobile\": \"0001112223\"\n"
 				+ "        }]\n" + "    }\n";
 
-		BiFunction<List<String>, List<String>, List<String>> lineConverter = (h, l) -> l;
+		TriFunction<JsonNode, List<String>, List<String>, List<String>> lineConverter = (node, header, line) -> line;
 		Consumer<List<String>> resultConsumer = l -> {
 		};
 		JsonPointer basePath = JsonPointer.compile("/base/name");
