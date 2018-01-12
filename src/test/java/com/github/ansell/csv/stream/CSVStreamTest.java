@@ -953,6 +953,51 @@ public class CSVStreamTest {
 	 * .
 	 */
 	@Test
+	public final void testStreamCSVEscapeSetEmbeddedComma() throws Exception {
+
+		AtomicBoolean headersGood = new AtomicBoolean(false);
+		AtomicBoolean lineGood = new AtomicBoolean(false);
+		AtomicBoolean foundLine = new AtomicBoolean(false);
+		AtomicBoolean lineError = new AtomicBoolean(false);
+		// The default mapper skips comment lines
+		CsvMapper mapper = CSVStream.defaultMapper();
+		CsvSchema schema = CsvSchema.builder().setEscapeChar('\\').build();
+		CSVStream.parse(new StringReader("\"uuid\", \"occurrenceID\", \"rowKey\", \"individualCount\"\n"
+				+ "\"976264de-5d3a-4fa4-a018-99a12cc9e3fe\",\"http://volunteer.ala.org.au/task/show/9999999999999\",\"dr1765|UHIM 2014,17871\",\"\"\n"),
+				h -> {
+					if (h.size() == 4 && h.contains("uuid") && h.contains("occurrenceID") && h.contains("rowKey")
+							&& h.contains("individualCount")) {
+						headersGood.set(true);
+					}
+				}, (h, l) -> {
+					if (foundLine.compareAndSet(false, true) && l.size() == 4) {
+						lineGood.set(true);
+					} else {
+						System.out.println("Error on line: ");
+						System.out.println(h.toString());
+						System.out.println(l.size());
+						for (int i = 0; i < l.size(); i++) {
+							System.out.println(i);
+							System.out.println("[" + l.get(i) + "]");
+						}
+						lineError.set(true);
+					}
+					return l;
+				}, l -> {
+				}, null, 1, mapper, schema);
+
+		assertTrue("Headers were not recognised", headersGood.get());
+		assertTrue("Line was not recognised", lineGood.get());
+		assertTrue("Line was not found", foundLine.get());
+		assertFalse("Line error", lineError.get());
+	}
+
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.csv.util.CSVStream#parse(java.io.Reader, java.util.function.Consumer, java.util.function.BiFunction, java.util.function.Consumer, List, int)}
+	 * .
+	 */
+	@Test
 	public final void testStreamTSVWithQuoteAndEscape() throws Exception {
 
 		AtomicBoolean headersGood = new AtomicBoolean(false);
