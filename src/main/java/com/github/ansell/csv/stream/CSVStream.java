@@ -306,6 +306,7 @@ public final class CSVStream {
 
 		if (headers != null) {
 			try {
+				headers = headers.stream().map(String::trim).map(String::intern).collect(Collectors.toList());
 				headersValidator.accept(headers);
 			} catch (final Exception e) {
 				throw new CSVStreamException("Could not verify substituted headers for csv file", e);
@@ -347,7 +348,7 @@ public final class CSVStream {
 				// "CSVStream.parse: (int)schema.getColumnSeparator()=" + (int)
 				// schema.getColumnSeparator());
 				if (headers == null) {
-					headers = nextLine.stream().map(v -> v.trim()).map(v -> v.intern()).collect(Collectors.toList());
+					headers = nextLine.stream().map(String::trim).map(String::intern).collect(Collectors.toList());
 					try {
 						headersValidator.accept(headers);
 					} catch (final Exception e) {
@@ -555,7 +556,8 @@ public final class CSVStream {
 	 * @param headers
 	 *            The list of strings in the header.
 	 * @param useHeader
-	 * 			  Set to false to avoid writing the header line, which is necessary if appending to an existing file.
+	 *            Set to false to avoid writing the header line, which is necessary
+	 *            if appending to an existing file.
 	 * @return A {@link CsvSchema} object including the given header items.
 	 */
 	public static CsvSchema buildSchema(List<String> headers, boolean useHeader) {
