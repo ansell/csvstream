@@ -6,7 +6,11 @@ Java-8 based CSV streaming, based on the Jackson CSV parser.
 
 # Changelog
 
-## 1017-10-17
+## 2018-01-19
+* Release 0.0.5
+* Add support for JSON streaming
+
+## 2017-10-17
 * Release 0.0.4
 * Add support for default value interpolation
 
