@@ -172,9 +172,16 @@ public final class JSONStream {
 		// after a single call to nextToken and to avoid encoding the last part of the
 		// base path into the fieldRelativePaths
 		boolean includeParent = false;
-		try (JsonParser baseParser = mapper.getFactory().createParser(reader);
-				JsonParser filteredParser = new FilteringParserDelegate(baseParser,
-						new JsonPointerBasedFilter(basePath), includeParent, false);) {
+		try (JsonParser baseParser = mapper.getFactory().createParser(reader);) {
+			final String serialisedBasePath = basePath.toString();
+			final JsonParser filteredParser;
+			// Only use FilteringParserDelegate if the base path isn't the start
+			if (serialisedBasePath.isEmpty() || serialisedBasePath.equals("/")) {
+				filteredParser = baseParser;
+			} else {
+				filteredParser = new FilteringParserDelegate(baseParser, new JsonPointerBasedFilter(basePath),
+						includeParent, false);
+			}
 			// Streaming check so that we don't attempt to parse entire large arrays as
 			// trees, rather we stream through the objects internally parsing each of the
 			// internal objects as separate trees
