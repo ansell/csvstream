@@ -108,24 +108,26 @@ public final class JSONStream {
 	public static <T> void parse(final Reader reader, final Consumer<List<String>> headersValidator,
 			final TriFunction<JsonNode, List<String>, List<String>, T> lineConverter, final Consumer<T> resultConsumer,
 			final JsonPointer basePath, final Map<String, Optional<JsonPointer>> fieldRelativePaths,
-			final Map<String, String> defaultValues, final ObjectMapper mapper) throws IOException, CSVStreamException {
+			final Map<String, String> defaultValues, final ObjectMapper mapper, final List<String> outputHeaders)
+			throws IOException, CSVStreamException {
 
 		if (fieldRelativePaths.isEmpty()) {
 			throw new CSVStreamException("No field paths were set for JSONStream.parse");
 		}
 
-		final List<String> headers = fieldRelativePaths.keySet().stream().map(v -> v.trim()).map(v -> v.intern())
-				.collect(Collectors.toCollection(ArrayList::new));
-		Collections.sort(headers, String::compareTo);
+		// final List<String> headers = fieldRelativePaths.keySet().stream().map(v ->
+		// v.trim()).map(v -> v.intern())
+		// .collect(Collectors.toCollection(ArrayList::new));
+		// Collections.sort(headers, String::compareTo);
 
 		try {
-			headersValidator.accept(headers);
+			headersValidator.accept(outputHeaders);
 		} catch (final Exception e) {
 			throw new CSVStreamException("Could not verify substituted headers for json file", e);
 		}
 
-		List<JsonPointer> fieldRelativePointers = new ArrayList<>(headers.size());
-		for (final String nextHeader : headers) {
+		List<JsonPointer> fieldRelativePointers = new ArrayList<>(outputHeaders.size());
+		for (final String nextHeader : outputHeaders) {
 			if (!fieldRelativePaths.containsKey(nextHeader)) {
 				throw new CSVStreamException("No relative JSONPath mapping found for header: " + nextHeader);
 			}
@@ -144,7 +146,7 @@ public final class JSONStream {
 				List<String> changedResult = null;
 				for (int i = 0; i < l.size(); i++) {
 					if (l.get(i).isEmpty()) {
-						String nextHeader = headers.get(i);
+						String nextHeader = outputHeaders.get(i);
 						if (defaultValues.containsKey(nextHeader)) {
 							String nextDefaultValue = defaultValues.get(nextHeader);
 							if (!nextDefaultValue.isEmpty()) {
@@ -199,7 +201,7 @@ public final class JSONStream {
 					// and return it as a tree model JsonNode
 					JsonNode nextNode = mapper.readTree(filteredParser);
 
-					convertNodeToResult(lineConverter, resultConsumer, basePath, fieldRelativePaths, headers,
+					convertNodeToResult(lineConverter, resultConsumer, basePath, fieldRelativePaths, outputHeaders,
 							fieldRelativePointers, defaultValueReplacer, nextNode);
 					lineCount++;
 				}
@@ -210,7 +212,7 @@ public final class JSONStream {
 					throw new CSVStreamException("Path did not match anything: path='" + basePath.toString() + "'");
 				}
 
-				convertNodeToResult(lineConverter, resultConsumer, basePath, fieldRelativePaths, headers,
+				convertNodeToResult(lineConverter, resultConsumer, basePath, fieldRelativePaths, outputHeaders,
 						fieldRelativePointers, defaultValueReplacer, baseNode);
 				lineCount++;
 			} else {
@@ -230,6 +232,8 @@ public final class JSONStream {
 			final Map<String, Optional<JsonPointer>> fieldRelativePaths, List<String> headers,
 			List<JsonPointer> fieldRelativePointers, final Function<List<String>, List<String>> defaultValueReplacer,
 			JsonNode nextNode) {
+		// System.out.println("JSONStream.parse: headers.size()=" + headers.size());
+		// System.out.println("JSONStream.parse: headers=" + headers);
 		int fieldCount = headers.size();
 		List<String> nextLine = initialiseResult(fieldCount);
 		for (int i = 0; i < fieldCount; i++) {
@@ -240,9 +244,9 @@ public final class JSONStream {
 				if (node.isValueNode()) {
 					nextLine.set(i, node.asText());
 				} else {
-					nextLine.set(i, "");
-					//throw new CSVStreamException("Field relative pointers must point to value nodes: instead found "
-					//		+ nextField.toString() + " after setting base to " + basePath.toString());
+					// throw new CSVStreamException("Field relative pointers must point to value
+					// nodes: instead found "
+					// + nextField.toString() + " after setting base to " + basePath.toString());
 				}
 			}
 		}
