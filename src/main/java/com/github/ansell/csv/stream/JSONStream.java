@@ -237,11 +237,13 @@ public final class JSONStream {
 			Optional<JsonPointer> nextField = fieldRelativePaths.get(nextHeader);
 			if (nextField.isPresent()) {
 				JsonNode node = nextNode.at(nextField.get());
-				if (!node.isValueNode()) {
-					throw new CSVStreamException("Field relative pointers must point to value nodes: instead found "
-							+ nextField.toString() + " after setting base to " + basePath.toString());
+				if (node.isValueNode()) {
+					nextLine.set(i, node.asText());
+				} else {
+					nextLine.set(i, "");
+					//throw new CSVStreamException("Field relative pointers must point to value nodes: instead found "
+					//		+ nextField.toString() + " after setting base to " + basePath.toString());
 				}
-				nextLine.set(i, node.asText());
 			}
 		}
 		// System.out.println("JSONStream.parse: nextLine.size()=" + nextLine.size());
