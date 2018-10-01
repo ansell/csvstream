@@ -172,6 +172,92 @@ public class JSONStreamTest {
 
 	}
 
+	@Test
+	public void testParseErrorNoFieldRelativePaths() throws Exception {
+
+		String testString = "\"base\": [\n" + "       {\n" + "        \"name\":\"Alice\",\n" + "        \"phone\": [{\n"
+				+ "            \"home\": \"1234567890\",\n" + "            \"mobile\": \"0001112223\"\n"
+				+ "        }]\n" + "    },\n" + "    {\n" + "        \"name\":\"Bob\",\n" + "        \"phone\": [{\n"
+				+ "            \"home\": \"3456789012\",\n" + "            \"mobile\": \"4445556677\"\n"
+				+ "        }]\n" + "    }\n" + "]";
+
+		TriFunction<JsonNode, List<String>, List<String>, List<String>> lineConverter = (node, header, line) -> line;
+		Consumer<List<String>> resultConsumer = l -> {
+		};
+		JsonPointer basePath = JsonPointer.compile("/base/1");
+		Map<String, Optional<JsonPointer>> fieldRelativePaths = new LinkedHashMap<>();
+		Map<String, String> defaultValues = Collections.emptyMap();
+
+		System.out.println("JSONStreamUtil.queryJSON:");
+		System.out.println(JSONStreamUtil.queryJSON(new StringReader(testString), basePath));
+
+		System.out.println("JSONStream.parse:");
+		List<String> headers = Arrays.asList("name", "phone", "mobile");
+		thrown.expect(CSVStreamException.class);
+		thrown.expectMessage("No field paths were set for JSONStream.parse");
+		JSONStream.parse(new StringReader(testString), h -> {
+		}, lineConverter, resultConsumer, basePath, fieldRelativePaths, defaultValues, mapper, headers);
+
+	}
+
+	@Test
+	public void testParseErrorHeaderValidatorFail() throws Exception {
+
+		String testString = "\"base\": [\n" + "       {\n" + "        \"name\":\"Alice\",\n" + "        \"phone\": [{\n"
+				+ "            \"home\": \"1234567890\",\n" + "            \"mobile\": \"0001112223\"\n"
+				+ "        }]\n" + "    },\n" + "    {\n" + "        \"name\":\"Bob\",\n" + "        \"phone\": [{\n"
+				+ "            \"home\": \"3456789012\",\n" + "            \"mobile\": \"4445556677\"\n"
+				+ "        }]\n" + "    }\n" + "]";
+
+		TriFunction<JsonNode, List<String>, List<String>, List<String>> lineConverter = (node, header, line) -> line;
+		Consumer<List<String>> resultConsumer = l -> {
+		};
+		JsonPointer basePath = JsonPointer.compile("/base/1");
+		Map<String, Optional<JsonPointer>> fieldRelativePaths = new LinkedHashMap<>();
+		fieldRelativePaths.put("/", Optional.of(JsonPointer.compile("/name")));
+		Map<String, String> defaultValues = Collections.emptyMap();
+
+		System.out.println("JSONStreamUtil.queryJSON:");
+		System.out.println(JSONStreamUtil.queryJSON(new StringReader(testString), basePath));
+
+		System.out.println("JSONStream.parse:");
+		List<String> headers = Arrays.asList("name", "phone", "mobile");
+		thrown.expect(CSVStreamException.class);
+		thrown.expectMessage("Could not verify substituted headers for json file");
+		JSONStream.parse(new StringReader(testString), h -> {
+			throw new CSVStreamException("Header validator failed in test");
+		}, lineConverter, resultConsumer, basePath, fieldRelativePaths, defaultValues, mapper, headers);
+	}
+
+	@Test
+	public void testParseErrorHeaderNotInFieldRelativePaths() throws Exception {
+
+		String testString = "\"base\": [\n" + "       {\n" + "        \"name\":\"Alice\",\n" + "        \"phone\": [{\n"
+				+ "            \"home\": \"1234567890\",\n" + "            \"mobile\": \"0001112223\"\n"
+				+ "        }]\n" + "    },\n" + "    {\n" + "        \"name\":\"Bob\",\n" + "        \"phone\": [{\n"
+				+ "            \"home\": \"3456789012\",\n" + "            \"mobile\": \"4445556677\"\n"
+				+ "        }]\n" + "    }\n" + "]";
+
+		TriFunction<JsonNode, List<String>, List<String>, List<String>> lineConverter = (node, header, line) -> line;
+		Consumer<List<String>> resultConsumer = l -> {
+		};
+		JsonPointer basePath = JsonPointer.compile("/base/1");
+		Map<String, Optional<JsonPointer>> fieldRelativePaths = new LinkedHashMap<>();
+		fieldRelativePaths.put("name", Optional.of(JsonPointer.compile("/name")));
+		fieldRelativePaths.put("phone", Optional.of(JsonPointer.compile("/phone/0/home")));
+		Map<String, String> defaultValues = Collections.emptyMap();
+
+		System.out.println("JSONStreamUtil.queryJSON:");
+		System.out.println(JSONStreamUtil.queryJSON(new StringReader(testString), basePath));
+
+		System.out.println("JSONStream.parse:");
+		List<String> headers = Arrays.asList("name", "phone", "mobile");
+		thrown.expect(CSVStreamException.class);
+		thrown.expectMessage("No relative JSONPath mapping found for header: mobile");
+		JSONStream.parse(new StringReader(testString), h -> {
+		}, lineConverter, resultConsumer, basePath, fieldRelativePaths, defaultValues, mapper, headers);
+	}
+
 	@Ignore("Broken")
 	@Test
 	public void testParseNoTopLevelObject() throws Exception {
