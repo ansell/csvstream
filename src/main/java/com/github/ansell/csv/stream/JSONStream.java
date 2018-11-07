@@ -184,41 +184,45 @@ public final class JSONStream {
 				filteredParser = new FilteringParserDelegate(baseParser, new JsonPointerBasedFilter(basePath),
 						includeParent, false);
 			}
-			// Streaming check so that we don't attempt to parse entire large arrays as
-			// trees, rather we stream through the objects internally parsing each of the
-			// internal objects as separate trees
-			// THe FilteringParserDelegate along with the JsonPointerBasedFilter ensures
-			// that the first reported token is in the desired location to start finding
-			// result records
-			// NOTE: The token can be null if the path didn't match anything, in which case,
-			// a CSVStreamException will be thrown
-			JsonToken basePathToken = filteredParser.nextToken();
-			// If the path points to an array, we iterate over the elements, otherwise
-			// process the node as a whole
-			if (basePathToken == JsonToken.START_ARRAY) {
-				while (filteredParser.nextToken() == JsonToken.START_OBJECT) {
-					// read everything from this START_OBJECT to the matching END_OBJECT
-					// and return it as a tree model JsonNode
-					JsonNode nextNode = mapper.readTree(filteredParser);
+			try {
+				// Streaming check so that we don't attempt to parse entire large arrays as
+				// trees, rather we stream through the objects internally parsing each of the
+				// internal objects as separate trees
+				// THe FilteringParserDelegate along with the JsonPointerBasedFilter ensures
+				// that the first reported token is in the desired location to start finding
+				// result records
+				// NOTE: The token can be null if the path didn't match anything, in which case,
+				// a CSVStreamException will be thrown
+				JsonToken basePathToken = filteredParser.nextToken();
+				// If the path points to an array, we iterate over the elements, otherwise
+				// process the node as a whole
+				if (basePathToken == JsonToken.START_ARRAY) {
+					while (filteredParser.nextToken() == JsonToken.START_OBJECT) {
+						// read everything from this START_OBJECT to the matching END_OBJECT
+						// and return it as a tree model JsonNode
+						JsonNode nextNode = mapper.readTree(filteredParser);
+
+						convertNodeToResult(lineConverter, resultConsumer, basePath, fieldRelativePaths, outputHeaders,
+								fieldRelativePointers, defaultValueReplacer, nextNode);
+						lineCount++;
+					}
+				} else if (basePathToken == JsonToken.START_OBJECT) {
+					JsonNode baseNode = filteredParser.readValueAsTree();
+
+					if (baseNode == null) {
+						throw new CSVStreamException("Path did not match anything: path='" + basePath.toString() + "'");
+					}
 
 					convertNodeToResult(lineConverter, resultConsumer, basePath, fieldRelativePaths, outputHeaders,
-							fieldRelativePointers, defaultValueReplacer, nextNode);
+							fieldRelativePointers, defaultValueReplacer, baseNode);
 					lineCount++;
+				} else {
+					throw new CSVStreamException(
+							"Base JSONPointer must point to either an Array or an Object: instead found "
+									+ basePathToken + " (path was " + basePath.toString() + ")");
 				}
-			} else if (basePathToken == JsonToken.START_OBJECT) {
-				JsonNode baseNode = filteredParser.readValueAsTree();
-
-				if (baseNode == null) {
-					throw new CSVStreamException("Path did not match anything: path='" + basePath.toString() + "'");
-				}
-
-				convertNodeToResult(lineConverter, resultConsumer, basePath, fieldRelativePaths, outputHeaders,
-						fieldRelativePointers, defaultValueReplacer, baseNode);
-				lineCount++;
-			} else {
-				throw new CSVStreamException(
-						"Base JSONPointer must point to either an Array or an Object: instead found " + basePathToken
-								+ " (path was " + basePath.toString() + ")");
+			} finally {
+				filteredParser.close();
 			}
 		} catch (IOException | CSVStreamException e) {
 			throw e;
