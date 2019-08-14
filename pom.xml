@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
@@ -6,7 +7,7 @@
 	<parent>
 		<groupId>com.github.ansell</groupId>
 		<artifactId>parentpom</artifactId>
-		<version>12</version>
+		<version>13</version>
 	</parent>
 
 	<groupId>com.github.ansell.csv</groupId>
@@ -100,5 +101,13 @@
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.moditect</groupId>
+				<artifactId>moditect-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
 </project>
 
