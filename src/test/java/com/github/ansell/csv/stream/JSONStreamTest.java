@@ -316,7 +316,7 @@ public class JSONStreamTest {
             System.out.println(l);
             assertEquals(l.size(), 5);
             if (l.get(headers.indexOf("name")).equals("Alice")) {
-                assertEquals(l.get(headers.indexOf("homePhone")), "5551234");
+                assertEquals(l.get(headers.indexOf("homePhone")), "");
                 assertEquals(l.get(headers.indexOf("mobilePhone")), "0001112223");
                 assertEquals(l.get(headers.indexOf("emailAddress")), "test@example.org");
                 assertEquals(l.get(headers.indexOf("homeAddress")), "");
@@ -338,7 +338,7 @@ public class JSONStreamTest {
         fieldRelativePaths.put("mobilePhone", Optional.of(JsonPointer.compile("/phone/0/mobile")));
 
         Map<String, String> defaultValues = new LinkedHashMap<>();
-        defaultValues.put("homePhone", "5551234");
+        defaultValues.put("homePhone", "");
         defaultValues.put("emailAddress", "test@example.org");
 
         System.out.println("JSONStreamUtil.queryJSON:");
