@@ -128,14 +128,12 @@ public final class JSONStream {
 
         final List<JsonPointer> fieldRelativePointers = new ArrayList<>(outputHeaders.size());
         for (final String nextHeader : outputHeaders) {
-            if (!fieldRelativePaths.containsKey(nextHeader)) {
-                throw new CSVStreamException(
-                        "No relative JSONPath mapping found for header: " + nextHeader);
-            }
-            final Optional<JsonPointer> optionalFieldRelativePath = fieldRelativePaths
-                    .get(nextHeader);
-            if (optionalFieldRelativePath.isPresent()) {
-                fieldRelativePointers.add(optionalFieldRelativePath.get());
+            if (fieldRelativePaths.containsKey(nextHeader)) {
+                final Optional<JsonPointer> optionalFieldRelativePath = fieldRelativePaths
+                        .get(nextHeader);
+                if (optionalFieldRelativePath.isPresent()) {
+                    fieldRelativePointers.add(optionalFieldRelativePath.get());
+                }
             }
         }
 
@@ -258,17 +256,19 @@ public final class JSONStream {
         final List<String> nextLine = initialiseResult(fieldCount);
         for (int i = 0; i < fieldCount; i++) {
             final String nextHeader = headers.get(i);
-            final Optional<JsonPointer> nextField = fieldRelativePaths.get(nextHeader);
-            if (nextField.isPresent()) {
-                final JsonNode node = nextNode.at(nextField.get());
-                if (node.isValueNode()) {
-                    nextLine.set(i, node.asText());
-                } else {
-                    // throw new CSVStreamException("Field relative pointers
-                    // must point to value
-                    // nodes: instead found "
-                    // + nextField.toString() + " after setting base to " +
-                    // basePath.toString());
+            if (fieldRelativePaths.containsKey(nextHeader)) {
+                final Optional<JsonPointer> nextField = fieldRelativePaths.get(nextHeader);
+                if (nextField.isPresent()) {
+                    final JsonNode node = nextNode.at(nextField.get());
+                    if (node.isValueNode()) {
+                        nextLine.set(i, node.asText());
+                    } else {
+                        // throw new CSVStreamException("Field relative pointers
+                        // must point to value
+                        // nodes: instead found "
+                        // + nextField.toString() + " after setting base to " +
+                        // basePath.toString());
+                    }
                 }
             }
         }

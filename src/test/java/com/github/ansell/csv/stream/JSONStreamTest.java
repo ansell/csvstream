@@ -232,6 +232,126 @@ public class JSONStreamTest {
     }
 
     @Test
+    public void testParseTopLevelObjectWithArrayPathDefaultsRequired() throws Exception {
+
+        String testString = "{ \"base\": [\n" + "       {\n" + "        \"name\":\"Alice\",\n"
+                + "        \"phone\": [{\n"
+                + "            \"mobile\": \"0001112223\"\n" + "        }]\n" + "    },\n" + "    {\n"
+                + "        \"name\":\"Bob\",\n" + "        \"phone\": [{\n" + "            \"home\": \"3456789012\",\n"
+                + "            \"mobile\": \"4445556677\"\n" + "        }]\n" + "    }\n" + "] }";
+
+        final AtomicReference<List<String>> nextHeaders = new AtomicReference<>();
+        TriFunction<JsonNode, List<String>, List<String>, List<String>> lineConverter = (node, header, line) -> {
+            System.out.println(header);
+            assertEquals(header.size(), 4);
+            nextHeaders.set(header);
+            assertEquals(line.size(), 4);
+            assertTrue(header.contains("homePhone"));
+            assertTrue(header.contains("mobilePhone"));
+            assertTrue(header.contains("name"));
+            assertTrue(header.contains("emailAddress"));
+            return line;
+        };
+        Consumer<List<String>> resultConsumer = l -> {
+            final List<String> headers = nextHeaders.get();
+            System.out.println(l);
+            assertEquals(l.size(), 4);
+            if (l.get(headers.indexOf("name")).equals("Alice")) {
+                assertEquals(l.get(headers.indexOf("homePhone")), "5551234");
+                assertEquals(l.get(headers.indexOf("mobilePhone")), "0001112223");
+                assertEquals(l.get(headers.indexOf("emailAddress")), "test@example.org");
+            } else if (l.get(headers.indexOf("name")).equals("Bob")) {
+                assertEquals(l.get(headers.indexOf("homePhone")), "3456789012");
+                assertEquals(l.get(headers.indexOf("mobilePhone")), "4445556677");
+                assertEquals(l.get(headers.indexOf("emailAddress")), "test@example.org");
+            } else {
+                fail("Found unrecognised name field value: " + l.get(headers.indexOf("name")));
+            }
+        };
+        JsonPointer basePath = JsonPointer.compile("/base");
+        Map<String, Optional<JsonPointer>> fieldRelativePaths = new LinkedHashMap<>();
+        fieldRelativePaths.put("name", Optional.of(JsonPointer.compile("/name")));
+        //fieldRelativePaths.put("emailAddress", Optional.of(JsonPointer.compile("/email")));
+        fieldRelativePaths.put("homePhone", Optional.of(JsonPointer.compile("/phone/0/home")));
+        fieldRelativePaths.put("mobilePhone", Optional.of(JsonPointer.compile("/phone/0/mobile")));
+
+        Map<String, String> defaultValues = new LinkedHashMap<>();
+        defaultValues.put("homePhone", "5551234");
+        defaultValues.put("emailAddress", "test@example.org");
+
+        System.out.println("JSONStreamUtil.queryJSON:");
+        System.out.println(JSONStreamUtil.queryJSON(new StringReader(testString), basePath));
+
+        System.out.println("JSONStream.parse:");
+        List<String> headers = Arrays.asList("name", "homePhone", "mobilePhone", "emailAddress");
+        JSONStream.parse(new StringReader(testString), h -> {
+        }, lineConverter, resultConsumer, basePath, fieldRelativePaths, defaultValues, mapper, headers);
+
+    }
+
+    @Test
+    public void testParseTopLevelObjectWithArrayPathDefaultsRequiredEmpty() throws Exception {
+
+        String testString = "{ \"base\": [\n" + "       {\n" + "        \"name\":\"Alice\",\n"
+                + "        \"phone\": [{\n"
+                + "            \"mobile\": \"0001112223\"\n" + "        }]\n" + "    },\n" + "    {\n"
+                + "        \"name\":\"Bob\",\n" + "        \"phone\": [{\n" + "            \"home\": \"3456789012\",\n"
+                + "            \"mobile\": \"4445556677\"\n" + "        }]\n" + "    }\n" + "] }";
+
+        final AtomicReference<List<String>> nextHeaders = new AtomicReference<>();
+        TriFunction<JsonNode, List<String>, List<String>, List<String>> lineConverter = (node, header, line) -> {
+            System.out.println(header);
+            assertEquals(header.size(), 5);
+            nextHeaders.set(header);
+            assertEquals(line.size(), 5);
+            assertTrue(header.contains("homePhone"));
+            assertTrue(header.contains("mobilePhone"));
+            assertTrue(header.contains("name"));
+            assertTrue(header.contains("emailAddress"));
+            assertTrue(header.contains("homeAddress"));
+            return line;
+        };
+        Consumer<List<String>> resultConsumer = l -> {
+            final List<String> headers = nextHeaders.get();
+            System.out.println(l);
+            assertEquals(l.size(), 5);
+            if (l.get(headers.indexOf("name")).equals("Alice")) {
+                assertEquals(l.get(headers.indexOf("homePhone")), "5551234");
+                assertEquals(l.get(headers.indexOf("mobilePhone")), "0001112223");
+                assertEquals(l.get(headers.indexOf("emailAddress")), "test@example.org");
+                assertEquals(l.get(headers.indexOf("homeAddress")), "");
+            } else if (l.get(headers.indexOf("name")).equals("Bob")) {
+                assertEquals(l.get(headers.indexOf("homePhone")), "3456789012");
+                assertEquals(l.get(headers.indexOf("mobilePhone")), "4445556677");
+                assertEquals(l.get(headers.indexOf("emailAddress")), "test@example.org");
+                assertEquals(l.get(headers.indexOf("homeAddress")), "");
+            } else {
+                fail("Found unrecognised name field value: " + l.get(headers.indexOf("name")));
+            }
+        };
+        JsonPointer basePath = JsonPointer.compile("/base");
+        Map<String, Optional<JsonPointer>> fieldRelativePaths = new LinkedHashMap<>();
+        fieldRelativePaths.put("name", Optional.of(JsonPointer.compile("/name")));
+        fieldRelativePaths.put("emailAddress", Optional.of(JsonPointer.compile("/email")));
+        fieldRelativePaths.put("homeAddress", Optional.of(JsonPointer.compile("/home")));
+        fieldRelativePaths.put("homePhone", Optional.of(JsonPointer.compile("/phone/0/home")));
+        fieldRelativePaths.put("mobilePhone", Optional.of(JsonPointer.compile("/phone/0/mobile")));
+
+        Map<String, String> defaultValues = new LinkedHashMap<>();
+        defaultValues.put("homePhone", "5551234");
+        defaultValues.put("emailAddress", "test@example.org");
+
+        System.out.println("JSONStreamUtil.queryJSON:");
+        System.out.println(JSONStreamUtil.queryJSON(new StringReader(testString), basePath));
+
+        System.out.println("JSONStream.parse:");
+        List<String> headers = Arrays.asList("name", "homePhone", "mobilePhone", "emailAddress", "homeAddress");
+        JSONStream.parse(new StringReader(testString), h -> {
+        }, lineConverter, resultConsumer, basePath, fieldRelativePaths, defaultValues, mapper, headers);
+
+    }
+
+    @Test
     public void testParseTopLevelObjectWithArrayPathLineSkipping() throws Exception {
 
         String testString = "{ \"base\": [\n" + "       {\n" + "        \"name\":\"Alice\",\n"
@@ -391,6 +511,7 @@ public class JSONStreamTest {
 		}, lineConverter, resultConsumer, basePath, fieldRelativePaths, defaultValues, mapper, headers);
 	}
 
+	@Ignore("TODO: Reconstruct this test to not rely on the removed exception path")
 	@Test
 	public void testParseErrorHeaderNotInFieldRelativePaths() throws Exception {
 
@@ -414,8 +535,8 @@ public class JSONStreamTest {
 
 		System.out.println("JSONStream.parse:");
 		List<String> headers = Arrays.asList("name", "phone", "mobile");
-		thrown.expect(CSVStreamException.class);
-		thrown.expectMessage("No relative JSONPath mapping found for header: mobile");
+//		thrown.expect(CSVStreamException.class);
+//		thrown.expectMessage("No relative JSONPath mapping found for header: mobile");
 		JSONStream.parse(new StringReader(testString), h -> {
 		}, lineConverter, resultConsumer, basePath, fieldRelativePaths, defaultValues, mapper, headers);
 	}
