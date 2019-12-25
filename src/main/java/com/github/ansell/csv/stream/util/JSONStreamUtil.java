@@ -25,12 +25,8 @@
  */
 package com.github.ansell.csv.stream.util;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Reader;
-import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
@@ -53,6 +49,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class JSONStreamUtil {
 
+    /**
+     * Private constructor for static-only class
+     */
+    private JSONStreamUtil() {
+    }
+    
 	private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 	private static final JsonFactory JSON_FACTORY = new JsonFactory(JSON_MAPPER);
 	public static JsonNode loadJSON(Path path) throws JsonProcessingException, IOException {

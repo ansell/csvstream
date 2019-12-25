@@ -125,6 +125,168 @@ public class JSONStreamTest {
 
 	}
 
+    @Test
+    public void testParseTopLevelObjectWithArrayPathDefaultsUnused() throws Exception {
+
+        String testString = "{ \"base\": [\n" + "       {\n" + "        \"name\":\"Alice\",\n"
+                + "        \"phone\": [{\n" + "            \"home\": \"1234567890\",\n"
+                + "            \"mobile\": \"0001112223\"\n" + "        }]\n" + "    },\n" + "    {\n"
+                + "        \"name\":\"Bob\",\n" + "        \"phone\": [{\n" + "            \"home\": \"3456789012\",\n"
+                + "            \"mobile\": \"4445556677\"\n" + "        }]\n" + "    }\n" + "] }";
+
+        final AtomicReference<List<String>> nextHeaders = new AtomicReference<>();
+        TriFunction<JsonNode, List<String>, List<String>, List<String>> lineConverter = (node, header, line) -> {
+            System.out.println(header);
+            assertEquals(header.size(), 3);
+            nextHeaders.set(header);
+            assertEquals(line.size(), 3);
+            assertTrue(header.contains("homePhone"));
+            assertTrue(header.contains("mobilePhone"));
+            assertTrue(header.contains("name"));
+            return line;
+        };
+        Consumer<List<String>> resultConsumer = l -> {
+            final List<String> headers = nextHeaders.get();
+            System.out.println(l);
+            assertEquals(l.size(), 3);
+            if (l.get(headers.indexOf("name")).equals("Alice")) {
+                assertEquals(l.get(headers.indexOf("homePhone")), "1234567890");
+                assertEquals(l.get(headers.indexOf("mobilePhone")), "0001112223");
+            } else if (l.get(headers.indexOf("name")).equals("Bob")) {
+                assertEquals(l.get(headers.indexOf("homePhone")), "3456789012");
+                assertEquals(l.get(headers.indexOf("mobilePhone")), "4445556677");
+            } else {
+                fail("Found unrecognised name field value: " + l.get(headers.indexOf("name")));
+            }
+        };
+        JsonPointer basePath = JsonPointer.compile("/base");
+        Map<String, Optional<JsonPointer>> fieldRelativePaths = new LinkedHashMap<>();
+        fieldRelativePaths.put("name", Optional.of(JsonPointer.compile("/name")));
+        fieldRelativePaths.put("homePhone", Optional.of(JsonPointer.compile("/phone/0/home")));
+        fieldRelativePaths.put("mobilePhone", Optional.of(JsonPointer.compile("/phone/0/mobile")));
+
+        Map<String, String> defaultValues = new LinkedHashMap<>();
+        defaultValues.put("homePhone", "5551234");
+
+        System.out.println("JSONStreamUtil.queryJSON:");
+        System.out.println(JSONStreamUtil.queryJSON(new StringReader(testString), basePath));
+
+        System.out.println("JSONStream.parse:");
+        List<String> headers = Arrays.asList("name", "homePhone", "mobilePhone");
+        JSONStream.parse(new StringReader(testString), h -> {
+        }, lineConverter, resultConsumer, basePath, fieldRelativePaths, defaultValues, mapper, headers);
+
+    }
+
+    @Test
+    public void testParseTopLevelObjectWithArrayPathDefaultsUsed() throws Exception {
+
+        String testString = "{ \"base\": [\n" + "       {\n" + "        \"name\":\"Alice\",\n"
+                + "        \"phone\": [{\n"
+                + "            \"mobile\": \"0001112223\"\n" + "        }]\n" + "    },\n" + "    {\n"
+                + "        \"name\":\"Bob\",\n" + "        \"phone\": [{\n" + "            \"home\": \"3456789012\",\n"
+                + "            \"mobile\": \"4445556677\"\n" + "        }]\n" + "    }\n" + "] }";
+
+        final AtomicReference<List<String>> nextHeaders = new AtomicReference<>();
+        TriFunction<JsonNode, List<String>, List<String>, List<String>> lineConverter = (node, header, line) -> {
+            System.out.println(header);
+            assertEquals(header.size(), 3);
+            nextHeaders.set(header);
+            assertEquals(line.size(), 3);
+            assertTrue(header.contains("homePhone"));
+            assertTrue(header.contains("mobilePhone"));
+            assertTrue(header.contains("name"));
+            return line;
+        };
+        Consumer<List<String>> resultConsumer = l -> {
+            final List<String> headers = nextHeaders.get();
+            System.out.println(l);
+            assertEquals(l.size(), 3);
+            if (l.get(headers.indexOf("name")).equals("Alice")) {
+                assertEquals(l.get(headers.indexOf("homePhone")), "5551234");
+                assertEquals(l.get(headers.indexOf("mobilePhone")), "0001112223");
+            } else if (l.get(headers.indexOf("name")).equals("Bob")) {
+                assertEquals(l.get(headers.indexOf("homePhone")), "3456789012");
+                assertEquals(l.get(headers.indexOf("mobilePhone")), "4445556677");
+            } else {
+                fail("Found unrecognised name field value: " + l.get(headers.indexOf("name")));
+            }
+        };
+        JsonPointer basePath = JsonPointer.compile("/base");
+        Map<String, Optional<JsonPointer>> fieldRelativePaths = new LinkedHashMap<>();
+        fieldRelativePaths.put("name", Optional.of(JsonPointer.compile("/name")));
+        fieldRelativePaths.put("homePhone", Optional.of(JsonPointer.compile("/phone/0/home")));
+        fieldRelativePaths.put("mobilePhone", Optional.of(JsonPointer.compile("/phone/0/mobile")));
+
+        Map<String, String> defaultValues = new LinkedHashMap<>();
+        defaultValues.put("homePhone", "5551234");
+
+        System.out.println("JSONStreamUtil.queryJSON:");
+        System.out.println(JSONStreamUtil.queryJSON(new StringReader(testString), basePath));
+
+        System.out.println("JSONStream.parse:");
+        List<String> headers = Arrays.asList("name", "homePhone", "mobilePhone");
+        JSONStream.parse(new StringReader(testString), h -> {
+        }, lineConverter, resultConsumer, basePath, fieldRelativePaths, defaultValues, mapper, headers);
+
+    }
+
+    @Test
+    public void testParseTopLevelObjectWithArrayPathLineSkipping() throws Exception {
+
+        String testString = "{ \"base\": [\n" + "       {\n" + "        \"name\":\"Alice\",\n"
+                + "        \"phone\": [{\n" + "            \"home\": \"1234567890\",\n"
+                + "            \"mobile\": \"0001112223\"\n" + "        }]\n" + "    },\n" + "    {\n"
+                + "        \"name\":\"Bob\",\n" + "        \"phone\": [{\n" + "            \"home\": \"3456789012\",\n"
+                + "            \"mobile\": \"4445556677\"\n" + "        }]\n" + "    }\n" + "] }";
+
+        final AtomicReference<List<String>> nextHeaders = new AtomicReference<>();
+        TriFunction<JsonNode, List<String>, List<String>, List<String>> lineConverter = (node, header, line) -> {
+            System.out.println(header);
+            assertEquals(header.size(), 3);
+            nextHeaders.set(header);
+            assertEquals(line.size(), 3);
+            assertTrue(header.contains("homePhone"));
+            assertTrue(header.contains("mobilePhone"));
+            assertTrue(header.contains("name"));
+            if(line.get(header.indexOf("name")).equals("Alice")) {
+                return line;
+            } else {
+                // Testing skipping of lines
+                return null;
+            }
+        };
+        Consumer<List<String>> resultConsumer = l -> {
+            final List<String> headers = nextHeaders.get();
+            System.out.println(l);
+            assertEquals(l.size(), 3);
+            if (l.get(headers.indexOf("name")).equals("Alice")) {
+                assertEquals(l.get(headers.indexOf("homePhone")), "1234567890");
+                assertEquals(l.get(headers.indexOf("mobilePhone")), "0001112223");
+            } else if (l.get(headers.indexOf("name")).equals("Bob")) {
+                fail("Bob should have been skipped");
+            } else {
+                fail("Found unrecognised name field value: " + l.get(headers.indexOf("name")));
+            }
+        };
+        JsonPointer basePath = JsonPointer.compile("/base");
+        Map<String, Optional<JsonPointer>> fieldRelativePaths = new LinkedHashMap<>();
+        fieldRelativePaths.put("name", Optional.of(JsonPointer.compile("/name")));
+        fieldRelativePaths.put("homePhone", Optional.of(JsonPointer.compile("/phone/0/home")));
+        fieldRelativePaths.put("mobilePhone", Optional.of(JsonPointer.compile("/phone/0/mobile")));
+
+        Map<String, String> defaultValues = Collections.emptyMap();
+
+        System.out.println("JSONStreamUtil.queryJSON:");
+        System.out.println(JSONStreamUtil.queryJSON(new StringReader(testString), basePath));
+
+        System.out.println("JSONStream.parse:");
+        List<String> headers = Arrays.asList("name", "homePhone", "mobilePhone");
+        JSONStream.parse(new StringReader(testString), h -> {
+        }, lineConverter, resultConsumer, basePath, fieldRelativePaths, defaultValues, mapper, headers);
+
+    }
+
 	@Test
 	public void testParseTopLevelObjectWithObjectPath() throws Exception {
 
