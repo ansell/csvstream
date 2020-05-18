@@ -327,12 +327,14 @@ public class CSVStreamTest {
 	}
 
 	@Test
-	public final void testWriteSingleEmptyString() throws Exception {
+	public final void testWriteSingleShortString() throws Exception {
 		List<String> headers = Arrays.asList("TestHeader1");
 		StringWriter writer = new StringWriter();
-		CSVStream.newCSVWriter(writer, headers).writeAll(Arrays.asList(Arrays.asList("")));
+		List<String> innerList = Arrays.asList("Z");
+		List<List<String>> outerList = Arrays.asList(innerList);
+		CSVStream.newCSVWriter(writer, headers).writeAll(outerList);
 		System.out.println(writer.toString());
-		assertEquals("TestHeader1\n\n", writer.toString());
+		assertEquals("TestHeader1\nZ\n", writer.toString());
 
 		AtomicBoolean headersGood = new AtomicBoolean(false);
 		AtomicBoolean lineGood = new AtomicBoolean(false);
@@ -341,7 +343,7 @@ public class CSVStreamTest {
 				headersGood.set(true);
 			}
 		}, (h, l) -> {
-			if (l.size() == 1 && l.contains("")) {
+			if (l.size() == 1 && l.get(0).equals("Z")) {
 				lineGood.set(true);
 			}
 			return l;
@@ -353,28 +355,29 @@ public class CSVStreamTest {
 	}
 
 	@Test
-	public final void testWriteSingleEmptyStringNoHeader() throws Exception {
+	public final void testWriteSingleShortStringNoHeader() throws Exception {
 		List<String> headers = Arrays.asList("TestHeader1");
 		StringWriter writer = new StringWriter();
 		CSVStream.newCSVWriter(writer, CSVStream.buildSchema(headers, false))
-				.writeAll(Arrays.asList(Arrays.asList("")));
+				.writeAll(Arrays.asList(Arrays.asList("Z")));
 		System.out.println(writer.toString());
-		assertEquals("\n", writer.toString());
+		assertEquals("Z\n", writer.toString());
 
 		AtomicBoolean headersGood = new AtomicBoolean(false);
 		AtomicBoolean lineGood = new AtomicBoolean(true);
 		CSVStream.parse(new StringReader(writer.toString()), h -> {
-			if (h.size() == 1 && h.get(0).isEmpty()) {
+			if (h.size() == 1 && h.get(0).equals("TestHeader1")) {
 				// Trivial single empty header string, due to the header not expected to be
 				// written out in this case to allow for empty string record appends to an
 				// existing file
 				headersGood.set(true);
 			}
 		}, (h, l) -> {
-			lineGood.set(false);
+		    assertEquals(1, l.size());
+		    assertEquals("Z", l.get(0));
 			return l;
 		}, l -> {
-		});
+		}, headers, 0);
 
 		assertTrue("Headers were not recognised", headersGood.get());
 		assertTrue("Line was not recognised", lineGood.get());
