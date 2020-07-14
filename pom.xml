@@ -37,7 +37,7 @@
 	</developers>
 
 	<properties>
-		<jdkLevel>11</jdkLevel>
+		<jdkLevel>1.8</jdkLevel>
 		
 		<jackson.version>2.11.0</jackson.version>
 		<junit.version>4.13</junit.version>
