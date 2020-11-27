@@ -18,3 +18,5 @@ hs_err_pid*
 pom.xml.versionsBackup
 .~lock
 *#
+
+.DS_Store
